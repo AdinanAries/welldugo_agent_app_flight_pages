@@ -239,7 +239,12 @@ export default function CheckoutPage(props){
                 const {client_secret: clientSecret} = pi;
 
                 // Creating booking intent with payment
+                let agent_id = "";
+                if(localStorage.getItem("agent"))
+                    agent_id = localStorage.getItem("agent") || "";
+                    
                 let bookingItent = {
+                    oc_user_id: agent_id,
                     payment_intent: pi,
                     booking_order: checkoutPayload,
                 }
