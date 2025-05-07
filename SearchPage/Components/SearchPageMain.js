@@ -10,6 +10,7 @@ import Tourism from "../../../helpers/Tourism";
 import { show_prompt_on_Bot_AD_tips_popup } from "../../../components/HPSupport";
 import { getDataSummeries } from "../../../helpers/FlightsFilterHelpers";
 import { getClient } from "../../../helpers/general";
+import LOGO_PLACEHOLDER from "../../../LOGO_PLACEHOLDER.jpg";
 
 const SearchPageMain = (props) => {
 
@@ -263,19 +264,58 @@ const SearchPageMain = (props) => {
                     <SearchResultSearchForm submitFromSearchPage={submitFromSearchPage} />
                     {
                         searchObjectIncomplete ?
-                        <div style={{padding: "30px 20px", margin: "60px 10px", backgroundColor: "black", borderRadius: 10}}>
-                            <p style={{display: "flex", justifyContent: "center", color: "white"}}>
-                                <i style={{marginRight: 10, color: "red"}}
-                                    className="fa-solid fa-exclamation-triangle"></i>
-                                Please complete the search form to begin search...
-                            </p>
-                            <p style={{borderTop: "1px solid rgba(255,255,255,0.2)", display: "flex", justifyContent: "center", color: "pink", marginTop: 20, paddingTop: 20}}>
-                                <i style={{marginRight: 10, color: "orange"}}
-                                    className="fa-solid fa-user-tie"></i>
-                                {(agentDetails?.first_name)} {(agentDetails?.last_name)}
-                            </p>
-                            <p style={{color: "orange", fontSize: 13, textAlign: "center", marginTop: 5}}>
-                                {agentDetails?.phone}, {agentDetails?.email}</p>
+                        <div style={{paddingBottom: 20}}>
+                            <div style={{padding: "30px 20px", margin: "60px 10px", marginBottom: 50, backgroundColor: "black", borderRadius: 10}}>
+                                <p style={{border: "1px solid rgba(255,255,255,0.2)", backgroundColor: "rgba(255,255,255,0.1)", marginBottom: 30, paddingTop: 20, paddingBottom: 20, display: "flex", justifyContent: "center", color: "white"}}>
+                                    <i style={{marginRight: 10, color: "red"}}
+                                        className="fa-solid fa-exclamation-triangle"></i>
+                                    Please complete the search form to begin search...
+                                </p>
+                                <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column"}}>
+                                    <div>
+                                        <img style={{width: 60}}
+                                            src={LOGO_PLACEHOLDER}/>
+                                    </div>
+                                    <div style={{marginTop: 5}}>
+                                        <h1 style={{color: "skyblue", fontSize: 20, textAlign: "center"}}>
+                                            Business Name</h1>
+                                        <p style={{fontWeight: "bolder", fontSize: 12, color: "#c751b9", textAlign: "center", marginBottom: 15, marginTop: 20, letterSpacing: 0.5, fontFamily: "Courgette"}}>
+                                                - Agent Details -</p>
+                                        <p style={{ display: "flex", justifyContent: "center", color: "white", marginTop: 10}}>
+                                            <i style={{marginRight: 10, color: "rgba(255,255,255,0.8)"}}
+                                                className="fa-solid fa-user-tie"></i>
+                                            {(agentDetails?.first_name)} {(agentDetails?.last_name)}
+                                        </p>
+                                        <p style={{color: "rgba(255,255,255,0.8)", fontSize: 13, textAlign: "center", marginTop: 5}}>
+                                            {agentDetails?.phone}, {agentDetails?.email}</p>
+                                        <div className="footer_section_each_flex_section_container" style={{marginTop: 20}}>
+                                            <p style={{fontWeight: "bolder", color: "#c751b9", fontSize: 12, textAlign: "center", marginBottom: 15, letterSpacing: 0.5, fontFamily: "Courgette"}}>
+                                                - Contact Us -</p>
+                                            <div style={{marginTop: 10}}>
+                                                <p style={{color: "white", textAlign: "center"}}>
+                                                    <i style={{marginRight: 10, opacity: 0.4, marginBottom: 8}} className="fa fa-envelope"></i>
+                                                    business@email.com
+                                                </p>
+                                                <p style={{color: "white", textAlign: "center"}}>
+                                                    <i style={{marginRight: 10, opacity: 0.4, marginBottom: 10}} className="fa fa-phone"></i>
+                                                    +1 123-123-123
+                                                </p>
+                                                <p style={{color: "white", textAlign: "center"}}>
+                                                    <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
+                                                        <i style={{opacity: 0.5, marginBottom: 5, fontSize: 19}} className="fa fa-facebook"></i>
+                                                    </span>
+                                                    <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
+                                                        <i style={{opacity: 0.5, marginBottom: 5, fontSize: 19}} className="fa fa-twitter"></i>
+                                                    </span>
+                                                    <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
+                                                        <i style={{opacity: 0.5, marginBottom: 5, fontSize: 19}} className="fa fa-instagram"></i>
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div> :
                         <ResultsListContainer
                             selectFlightOffer={selectFlightOffer}
