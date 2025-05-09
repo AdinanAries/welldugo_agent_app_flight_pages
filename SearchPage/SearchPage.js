@@ -12,7 +12,8 @@ function SearchPage(props){
     const {
         agentDetails,
         productType,
-        change_product_type
+        change_product_type,
+        bookingEngine,
     } = props;
 
     return (
@@ -69,6 +70,7 @@ function SearchPage(props){
                     {
                         (CONSTANTS.product_types.flights===PRODUCT_TYPE) &&
                         <SearchPageMain
+                            bookingEngine={bookingEngine}
                             agentDetails={agentDetails}
                             begin_checkout={props.begin_checkout}
                             productType={productType}

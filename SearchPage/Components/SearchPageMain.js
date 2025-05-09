@@ -17,6 +17,7 @@ const SearchPageMain = (props) => {
     const {
         productType,
         agentDetails,
+        bookingEngine,
     } = props;
     
     let [ flights, setFlights ] = useState([]);
@@ -261,7 +262,9 @@ const SearchPageMain = (props) => {
         <main style={{background: "white"}}>
             <div className="wrapper search-page-wrapper">
                 <div style={{paddingTop: 90}}>
-                    <SearchResultSearchForm submitFromSearchPage={submitFromSearchPage} />
+                    <SearchResultSearchForm 
+                        bookingEngine={bookingEngine}
+                        submitFromSearchPage={submitFromSearchPage} />
                     {
                         searchObjectIncomplete ?
                         <div style={{paddingBottom: 20}}>

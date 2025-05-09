@@ -5,6 +5,7 @@ function HomePage(props){
     
    const { 
     agentDetails,
+    bookingEngine,
     siteCurrency, 
     siteLanguage, 
     toggle_show_hide_currency_page, 
@@ -15,6 +16,7 @@ function HomePage(props){
     return(
         <div id="home_page">
             <SearchPage 
+                bookingEngine={bookingEngine}
                 agentDetails={agentDetails}
                 begin_checkout={props.begin_checkout}
                 productType={productType}

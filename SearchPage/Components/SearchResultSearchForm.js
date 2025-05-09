@@ -8,6 +8,10 @@ import { show_search_page } from "../../../helpers/PageRoutingFuncs";
 
 function SearchForm( props ){
 
+    const {
+        bookingEngine
+    } = props;
+
     useEffect(()=>{
         let flight_search_data = JSON.parse(localStorage.getItem("search_obj"));
         SpDateChoosersInit(
@@ -177,7 +181,9 @@ function SearchForm( props ){
                                     if(document.getElementById("sp_forms_main_class_guests_cabin_settings_pane"))
                                         document.getElementById("sp_forms_main_class_guests_cabin_settings_pane").style.display = "none"
                                 }
-                            } style={{cursor: "pointer", padding: 10, margin: 10, marginTop: 0, backgroundColor: "rgb(148, 23, 119)", color: "white", textAlign: "center", borderRadius: 9, textAlign: "center"}}>
+                            } style={{cursor: "pointer", padding: 10, margin: 10, marginTop: 0, 
+                                backgroundColor: bookingEngine?.actionButtonsBg, 
+                                color: bookingEngine?.actionButtonsTxtColor, textAlign: "center", borderRadius: 9, textAlign: "center"}}>
                                 Done
                             </div>
                         </div>
@@ -311,10 +317,11 @@ function SearchForm( props ){
                                     Stops & Airline Filters & Price Sorting</p>
                             </div>
                         </div>
-                        <div onClick={searchOnSubmit} id="sp_search_form_submit_btn" style={{width: 55, height: 55, marginTop: -5, display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center"}} className="searchBtn">
-                            <i className="fa fa-search" style={{fontSize: 20, color: "rgba(255,255,255,0.4)"}}></i>
+                        <div onClick={searchOnSubmit} id="sp_search_form_submit_btn" 
+                            style={{background: bookingEngine?.actionButtonsBg, width: 55, height: 55, marginTop: -5, display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center"}} className="searchBtn">
+                            <i className="fa fa-search" style={{fontSize: 20, 
+                                color: bookingEngine?.actionButtonsIconColor}}></i>
                         </div>
-                        
                     </div>
                 </div>
             </div>
