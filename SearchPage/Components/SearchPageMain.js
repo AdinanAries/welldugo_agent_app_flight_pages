@@ -268,7 +268,8 @@ const SearchPageMain = (props) => {
                     {
                         searchObjectIncomplete ?
                         <div style={{paddingBottom: 20}}>
-                            <div style={{padding: "30px 20px", margin: "60px 10px", marginBottom: 50, backgroundColor: "black", borderRadius: 10}}>
+                            <div style={{padding: "30px 20px", margin: "60px 10px", marginBottom: 50, 
+                                    backgroundColor: bookingEngine?.headerBg, borderRadius: 10}}>
                                 <p style={{border: "1px solid rgba(255,255,255,0.2)", backgroundColor: "rgba(255,255,255,0.1)", marginBottom: 30, paddingTop: 20, paddingBottom: 20, display: "flex", justifyContent: "center", color: "white"}}>
                                     <i style={{marginRight: 10, color: "red"}}
                                         className="fa-solid fa-exclamation-triangle"></i>
@@ -280,7 +281,7 @@ const SearchPageMain = (props) => {
                                             src={LOGO_PLACEHOLDER}/>
                                     </div>
                                     <div style={{marginTop: 5}}>
-                                        <h1 style={{color: "skyblue", fontSize: 20, textAlign: "center"}}>
+                                        <h1 style={{color: bookingEngine?.headerCompanyTxtColor, fontSize: 20, textAlign: "center"}}>
                                             Business Name</h1>
                                         <p style={{fontWeight: "bolder", fontSize: 12, color: "#c751b9", textAlign: "center", marginBottom: 15, marginTop: 20, letterSpacing: 0.5, fontFamily: "Courgette"}}>
                                                 - Agent Details -</p>
