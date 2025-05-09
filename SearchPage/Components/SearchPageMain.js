@@ -322,6 +322,7 @@ const SearchPageMain = (props) => {
                             </div>
                         </div> :
                         <ResultsListContainer
+                            bookingEngine={bookingEngine}
                             selectFlightOffer={selectFlightOffer}
                             flights={flights} loading={loading}
                             SEARCH_OBJ={SEARCH_OBJ}
@@ -330,6 +331,7 @@ const SearchPageMain = (props) => {
                     {
                         selectedFlightId ?
                         <SelectedTicketPane
+                            bookingEngine={bookingEngine}
                             selectedFlightId={selectedFlightId}
                             unselectFlightOffer={unselectFlightOffer}
                             begin_checkout={props.begin_checkout}

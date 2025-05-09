@@ -6,7 +6,10 @@ import { getFlightDetail } from "../../../services/flightsServices";
 
 export default function SelectedTicketPane(props){
 
-    const { selectedFlightId } = props;
+    const { 
+        selectedFlightId,
+        bookingEngine
+    } = props;
     const [ flightDetail, setFlightDetail ] = useState(null);
     const [isError, setIsError] = useState(false);
 
@@ -36,6 +39,7 @@ export default function SelectedTicketPane(props){
                 !isError ?
                     flightDetail ? 
                         <SelectedTicketInfo 
+                            bookingEngine={bookingEngine}
                             key={0}
                             flight={flightDetail}
                             unselectFlightOffer={unselectFlightOffer} 

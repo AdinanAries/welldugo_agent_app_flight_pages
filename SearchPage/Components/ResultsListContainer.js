@@ -110,7 +110,11 @@ export default function ResultsListContainer(props){
         })();
     }, []);
 
-    const { SEARCH_OBJ } = props;
+    const { 
+        SEARCH_OBJ,
+        bookingEngine
+    } = props;
+    
     const [ filteredFlights, setFilteredFlights ] = useState([]);
     const [ priceSlider, setPriceSlider ] = useState(101);
     const [ isFiltersApplied, setIsFiltersApplied ] = useState(false);
@@ -380,6 +384,7 @@ export default function ResultsListContainer(props){
 
         FLIGHTS = _flights.map((each, index) => 
             <FlightOfferItem 
+                bookingEngine={bookingEngine}
                 selectFlightOffer={props.selectFlightOffer}
                 key={index} 
                 index={index}
@@ -389,6 +394,7 @@ export default function ResultsListContainer(props){
 
         FLIGHTS = filteredFlights.map((each, index) => 
             <FlightOfferItem 
+                bookingEngine={bookingEngine}
                 selectFlightOffer={props.selectFlightOffer}
                 key={index} 
                 index={index}
@@ -435,6 +441,7 @@ export default function ResultsListContainer(props){
                         !props.loading ? 
                         props.flights.length > 0 &&
                             <SearchFilters 
+                                bookingEngine={bookingEngine}
                                 sortByHighestOrLowestPrice={sortByHighestOrLowestPrice}
                                 priceHighLowSort={priceHighLowSort}
                                 filterStops={filterStops}

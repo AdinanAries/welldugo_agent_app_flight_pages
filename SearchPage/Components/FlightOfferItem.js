@@ -5,8 +5,12 @@ import ENVIRONMENT from "../../../Constants/Environment";
 import DuffelOfferItem from "./FlightOfferCards.js/DuffelOfferItem";
 
 const FlightOfferItem = (props) => {
+    const {
+        bookingEngine
+    } = props;
     if(CONSTANTS.duffel===ENVIRONMENT.data_provider) {
         return <DuffelOfferItem
+            bookingEngine={bookingEngine}
             selectFlightOffer={props.selectFlightOffer}
             flight={props.flight} 
             index={props.index}

@@ -10,6 +10,7 @@ import { getPriceMarkupPercentage } from "../../../services/flightsServices";
 const SearchFilters = (props) => {
 
     const { 
+        bookingEngine,
         filterStops, // array of stop filters
         filterAirlines, // array of airline filters
         filterFlights, // runs filter function to appy filters
