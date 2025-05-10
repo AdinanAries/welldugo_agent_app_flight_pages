@@ -29,6 +29,7 @@ const PaymentPage = (props) => {
         checkoutPayload,
         showPNRPage,
         loadingStages,
+        bookingEngine,
     } = props;
     
     return (
@@ -49,6 +50,7 @@ const PaymentPage = (props) => {
                             (!CONSTANTS.disabled_features.payment && options?.clientSecret) && <div style={{marginTop: 10}}>
                                 <Elements stripe={stripePromise} options={options}>
                                     <CheckoutForm 
+                                        bookingEngine={bookingEngine}
                                         paymentIntent={paymentIntent}
                                         setPaymentIntent={setPaymentIntent}
                                         bookingIntent={bookingIntent}
@@ -135,6 +137,7 @@ const PaymentPage = (props) => {
                 </div>
                 <div className="checkout_page_all_info_flex_right">
                     <PriceSummary 
+                        bookingEngine={bookingEngine}
                         prices={prices} 
                         payments={payments} 
                         buttonFunction={()=>{alert("I dont work")}}//createOrderOnSubmit} 

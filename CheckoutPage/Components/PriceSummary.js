@@ -17,7 +17,7 @@ const PriceSummary = (props) => {
         })();
     }, []);
 
-    const { payments, prices, total_travelers } = props;
+    const { payments, prices, total_travelers, bookingEngine } = props;
     let overallTotal = parseFloat(prices.total_amount);
     
     const { extras } = prices;
@@ -157,12 +157,22 @@ const PriceSummary = (props) => {
                     </span>
                 </p>
                 <div style={{display: "flex", marginTop: 10, justifyContent: "space-between"}}>
-                    <div onClick={props.backButtonFunction} style={{cursor: "pointer", boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", backgroundColor: "crimson", color: "white", borderRadius: "100%", width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center"}}>
+                    <div onClick={props.backButtonFunction} 
+                        style={{cursor: "pointer", 
+                            boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", 
+                            backgroundColor: bookingEngine?.closeButtonBgColor, 
+                            color: bookingEngine?.closeButtonIconColor, 
+                            borderRadius: bookingEngine?.closeButtonBorderRadius, width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center"}}>
                         <i className="fa-solid fa-arrow-left"></i>
                     </div>
                     {
                         ( !props.isPaymentPage ) ?
-                        <div onClick={props.buttonFunction} className="checkout_page_main_checkout_btn" style={{marginTop: 0, width: "calc(100% - 50px)"}}>
+                        <div onClick={props.buttonFunction} className="checkout_page_main_checkout_btn" 
+                            style={{marginTop: 0, width: "calc(100% - 50px)",
+                                backgroundColor: bookingEngine?.actionButtonsBg,
+                                color: bookingEngine?.actionButtonsTxtColor, 
+                                borderRadius: bookingEngine?.actionButtonBorderRadius,
+                            }}>
                             Continue
                             <span style={{fontSize: 13, color: "rgba(255,255,255,0.4)", marginLeft: 10}}>
                                 ({props.buttonText})</span>

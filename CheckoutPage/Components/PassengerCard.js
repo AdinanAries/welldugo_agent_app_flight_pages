@@ -3,6 +3,9 @@ import { obj_has_empty_prop } from "../../../helpers/general";
 import CONSTANTS from "../../../Constants/Constants";
 
 const PassengerCard = (props) => {
+    const {
+        bookingEngine,
+    } = props;
     const { given_name, family_name, id, infant_passenger_id, born_on } = props.passenger;
     let passenger_type = props?.passenger?.type;
     let incomplete_passenger = obj_has_empty_prop(props.passenger);
@@ -53,7 +56,12 @@ const PassengerCard = (props) => {
                     {given_name || "First and"} {family_name || "Last name"} 
                     <span style={{color: "rgba(0,0,0,0.5)", fontSize: 13}}> {(props?.age) ? `, ${props?.age} year(s)`: ""}</span>
                 </p>
-                <p style={{padding: 10, textAlign: "center", borderRadius: 50, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", backgroundColor: "rgb(23, 87, 148)", color: "white", fontFamily: "'Prompt', Sans-serif", fontSize: 12, marginTop: 10}}>
+                <p style={{padding: 10, textAlign: "center", 
+                    backgroundColor: bookingEngine?.actionButtonsBg,
+                    color: bookingEngine?.actionButtonsTxtColor, 
+                    borderRadius: bookingEngine?.actionButtonBorderRadius,
+                    boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", 
+                    fontFamily: "'Prompt', Sans-serif", fontSize: 12, marginTop: 10}}>
                     Click here to open this passenger's form
                 </p>
             </div>

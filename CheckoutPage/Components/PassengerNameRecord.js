@@ -29,6 +29,7 @@ const PassengerNameRecord = (props) => {
         prices, 
         resetCheckoutConfirmation, 
         showInfoPage,
+        bookingEngine,
     } = props;
 
     useEffect(()=> {
@@ -83,6 +84,7 @@ const PassengerNameRecord = (props) => {
                             
                             { ((selectedPassengertIndex > UNSELECTED_PASSENGER_VALUE) && (selectedPassengertIndex < passengers.length)) ? 
                                 <PassengerForm 
+                                    bookingEngine={bookingEngine}
                                     index={selectedPassengertIndex}
                                     savePassengerInfo={savePassengerInfo}
                                     resetCheckoutConfirmation={resetCheckoutConfirmation}
@@ -92,6 +94,7 @@ const PassengerNameRecord = (props) => {
                                 passengers.map((each, i) => {
                                     let age = calculate_age(each.born_on);
                                     return <PassengerCard 
+                                        bookingEngine={bookingEngine}
                                         key={each.id}
                                         index={i}
                                         age={age}
@@ -109,6 +112,7 @@ const PassengerNameRecord = (props) => {
                 </div>
                 <div className="checkout_page_all_info_flex_right">
                     <PriceSummary 
+                        bookingEngine={bookingEngine}
                         prices={prices}
                         buttonFunction={props.showPaymentPage} 
                         backButtonFunction={showInfoPage}

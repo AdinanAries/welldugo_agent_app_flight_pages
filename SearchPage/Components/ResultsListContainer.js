@@ -57,7 +57,8 @@ export default function ResultsListContainer(props){
 
     const { 
         SEARCH_OBJ,
-        bookingEngine
+        bookingEngine,
+        agentDetails,
     } = props;
     
     const [ filteredFlights, setFilteredFlights ] = useState([]);
@@ -374,7 +375,7 @@ export default function ResultsListContainer(props){
                 <div id="search_list_main__settings_section" className="search_list_main__settings_section">
                     { 
                         !props.loading ? 
-                        props.flights.length > 0 &&
+                        ((props.flights.length > 0) && bookingEngine?.showSearchFilters) &&
                             <SearchFilters 
                                 bookingEngine={bookingEngine}
                                 sortByHighestOrLowestPrice={sortByHighestOrLowestPrice}
@@ -387,6 +388,37 @@ export default function ResultsListContainer(props){
                             /> :
                             <SearchFiltersLoader />
                     }
+                    <div style={{padding: "30px 20px", borderRadius: 8, backgroundColor: "rgba(0,0,0,0.07)", marginTop: 30, border: "1px solid rgba(0, 0, 0, 0.1)"}}>
+                        <h3 style={{marginBottom: 10}}>
+                            <i style={{marginRight: 10}} className="fa-solid fa-building"></i>
+                            Business Name</h3>
+                        <p style={{fontSize: 13}}>
+                            <i style={{marginRight: 10, color: "rgba(0,0,0,0.5)"}}
+                                className="fa-solid fa-user-tie"></i>
+                            {agentDetails?.first_name} {agentDetails?.last_name}
+                        </p>
+                        <p style={{fontSize: 13}}>
+                            <i style={{marginRight: 10, color: "rgba(0,0,0,0.5)"}}
+                                className="fa-solid fa-envelope"></i>
+                            {agentDetails?.email}
+                        </p>
+                        <p style={{fontSize: 13}}>
+                            <i style={{marginRight: 10, color: "rgba(0,0,0,0.5)"}}
+                                className="fa-solid fa-phone"></i>
+                            {agentDetails?.phone}
+                        </p>
+                        <p style={{marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(0,0,0,0.1)"}}>
+                            <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
+                                <i style={{opacity: 0.5, fontSize: 19}} className="fa fa-facebook"></i>
+                            </span>
+                            <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
+                                <i style={{opacity: 0.5, fontSize: 19}} className="fa fa-twitter"></i>
+                            </span>
+                            <span style={{padding: "5px", borderRadius: 4, cursor: "pointer"}}>
+                                <i style={{opacity: 0.5, fontSize: 19}} className="fa fa-instagram"></i>
+                            </span>
+                        </p>
+                    </div>
                 </div>
                 <div className="search_list_main_tickets_section">
 
@@ -407,118 +439,120 @@ export default function ResultsListContainer(props){
                                 </div>
                             : props.flights.length > 0 && <div className="search_result_inportant_notice_container">
                                 <div>
-                                    
-                                    <div style={{padding: 10, marginTop: 10}}>
-                                        <div style={{display: "flex", justifyContent: "space-between"}}>
-                                            <div>
-                                                <div style={{display: "flex", justifyContent: "space-between"}}>
-                                                    <p style={{color: "rgba(0,0,0,0.8)", fontSize: 10, fontFamily: "'Prompt', Sans-serif"}}>
-                                                        ${(add_commas_to_number((markup(flightsMinPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
-                                                    </p>
-                                                    <p style={{color: "crimson", fontSize: 10, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
-                                                        ${(add_commas_to_number((markup(flightsSliderMaxPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
-                                                    </p>
-                                                    <p style={{color: "rgba(0,0,0,0.8)", fontSize: 10, fontFamily: "'Prompt', Sans-serif"}}>
-                                                        ${(add_commas_to_number((markup(flightsMaxPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
-                                                    </p>
-                                                </div>
-                                                <input 
-                                                    onInput={slidePriceFilter}
-                                                    className="styled-slider slider-progress" 
-                                                    min={SLIDER_MIN_PERCENT} max="101" 
-                                                    value={priceSlider} type="range" />
-                                            </div>
-                                            <div style={{marginLeft: 20, display: "flex"}}>
-                                                <div style={{position: "relative"}}>
-                                                    {
-                                                        isShowTimesFilter &&
-                                                        <TimesFilter 
-                                                            filterTimes={filterTimes}
-                                                            filtersByTimes={filtersByTimes}
-                                                            filterFlights={filterFlights}
-                                                            hideTimesFilter={hideTimesFilter}
-                                                        />
-                                                    }
-                                                    <div onClick={showTimesFilter}
-                                                        className="hover_bg-grey show_only_mobile_flex" 
-                                                            style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
-                                                        <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 17}} 
-                                                            className="fa-solid fa-clock"></i>    
-                                                    </div>
-                                                    <div onClick={showTimesFilter}
-                                                        className="mobile_hidden hover_bg-grey" style={{cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
-                                                        <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 13.5}} 
-                                                            className="fa-solid fa-clock"></i>
-                                                        <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
-                                                            Time
+                                    {
+                                        bookingEngine?.showSearchFilters &&
+                                        <div style={{padding: 10, marginTop: 10}}>
+                                            <div style={{display: "flex", justifyContent: "space-between"}}>
+                                                <div>
+                                                    <div style={{display: "flex", justifyContent: "space-between"}}>
+                                                        <p style={{color: "rgba(0,0,0,0.8)", fontSize: 10, fontFamily: "'Prompt', Sans-serif"}}>
+                                                            ${(add_commas_to_number((markup(flightsMinPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
                                                         </p>
-                                                        <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
-                                                            className="fa-solid fa-angle-down"></i>
-                                                    </div>
-                                                </div>
-                                                <div style={{position: "relative"}}>
-                                                    {
-                                                        isShowBagsFilter && 
-                                                        <BagsFilter 
-                                                            checkedBagsFilterQuantity={checkedBagsFilterQuantity}
-                                                            carryOnBagsFilterQuantity={carryOnBagsFilterQuantity}
-                                                            setCheckedBagsFilterQuantity={setCheckedBagsFilterQuantity}
-                                                            setCarryOnBagsFilterQuantity={setCarryOnBagsFilterQuantity}
-                                                            hideBagsFilter={hideBagsFilter} 
-                                                            maxCheckedBagsFilter={maxCheckedBagsFilter}
-                                                            maxCarryOnBagsFilter={maxCarryOnBagsFilter}
-                                                            filterBags={filterBags}
-                                                        />
-                                                    }
-                                                    <div onClick={showBagsFilter}
-                                                        className="hover_bg-grey show_only_mobile_flex" style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
-                                                        <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 19}} 
-                                                            className="fa-solid fa-cart-flatbed-suitcase"></i>    
-                                                    </div>
-                                                    <div onClick={showBagsFilter}
-                                                        className="mobile_hidden hover_bg-grey" style={{cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
-                                                        <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 15}} 
-                                                            className="fa-solid fa-cart-flatbed-suitcase"></i>
-                                                        <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
-                                                            Bags
+                                                        <p style={{color: "crimson", fontSize: 10, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
+                                                            ${(add_commas_to_number((markup(flightsSliderMaxPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
                                                         </p>
-                                                        <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
-                                                            className="fa-solid fa-angle-down"></i>
-                                                    </div>
-                                                </div>
-                                                <div style={{position: "relative"}}>
-                                                    {
-                                                        isShowDurationFilter && 
-                                                        <DurationFilter 
-                                                            flightsMinDuration={flightsMinDuration}
-                                                            flightsMaxDuration={flightsMaxDuration}
-                                                            SLIDER_MIN_PERCENT={D_SLIDER_MIN_PERCENT}
-                                                            slideDurationFilter={slideDurationFilter}
-                                                            durationSlider={durationSlider}
-                                                            flightsSliderMaxDuration={flightsSliderMaxDuration}
-                                                            hideDurationFilter={hideDurationFilter} 
-                                                        />
-                                                    }
-                                                    <div onClick={showDurationFilter}
-                                                        className="hover_bg-grey show_only_mobile_flex" style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
-                                                        <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 17}} 
-                                                            className="fa-solid fa-hourglass-half"></i>    
-                                                    </div>
-                                                    <div onClick={showDurationFilter}
-                                                        className="mobile_hidden hover_bg-grey" style={{marginLeft: 5, cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
-                                                        <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 13}} 
-                                                            className="fa-solid fa-hourglass-half"></i>
-                                                        <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
-                                                            Duration
+                                                        <p style={{color: "rgba(0,0,0,0.8)", fontSize: 10, fontFamily: "'Prompt', Sans-serif"}}>
+                                                            ${(add_commas_to_number((markup(flightsMaxPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
                                                         </p>
-                                                        <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
-                                                            className="fa-solid fa-angle-down"></i>
                                                     </div>
+                                                    <input 
+                                                        onInput={slidePriceFilter}
+                                                        className="styled-slider slider-progress" 
+                                                        min={SLIDER_MIN_PERCENT} max="101" 
+                                                        value={priceSlider} type="range" />
                                                 </div>
-                                                
+                                                <div style={{marginLeft: 20, display: "flex"}}>
+                                                    <div style={{position: "relative"}}>
+                                                        {
+                                                            isShowTimesFilter &&
+                                                            <TimesFilter 
+                                                                filterTimes={filterTimes}
+                                                                filtersByTimes={filtersByTimes}
+                                                                filterFlights={filterFlights}
+                                                                hideTimesFilter={hideTimesFilter}
+                                                            />
+                                                        }
+                                                        <div onClick={showTimesFilter}
+                                                            className="hover_bg-grey show_only_mobile_flex" 
+                                                                style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
+                                                            <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 17}} 
+                                                                className="fa-solid fa-clock"></i>    
+                                                        </div>
+                                                        <div onClick={showTimesFilter}
+                                                            className="mobile_hidden hover_bg-grey" style={{cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
+                                                            <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 13.5}} 
+                                                                className="fa-solid fa-clock"></i>
+                                                            <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
+                                                                Time
+                                                            </p>
+                                                            <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
+                                                                className="fa-solid fa-angle-down"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{position: "relative"}}>
+                                                        {
+                                                            isShowBagsFilter && 
+                                                            <BagsFilter 
+                                                                checkedBagsFilterQuantity={checkedBagsFilterQuantity}
+                                                                carryOnBagsFilterQuantity={carryOnBagsFilterQuantity}
+                                                                setCheckedBagsFilterQuantity={setCheckedBagsFilterQuantity}
+                                                                setCarryOnBagsFilterQuantity={setCarryOnBagsFilterQuantity}
+                                                                hideBagsFilter={hideBagsFilter} 
+                                                                maxCheckedBagsFilter={maxCheckedBagsFilter}
+                                                                maxCarryOnBagsFilter={maxCarryOnBagsFilter}
+                                                                filterBags={filterBags}
+                                                            />
+                                                        }
+                                                        <div onClick={showBagsFilter}
+                                                            className="hover_bg-grey show_only_mobile_flex" style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
+                                                            <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 19}} 
+                                                                className="fa-solid fa-cart-flatbed-suitcase"></i>    
+                                                        </div>
+                                                        <div onClick={showBagsFilter}
+                                                            className="mobile_hidden hover_bg-grey" style={{cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
+                                                            <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 15}} 
+                                                                className="fa-solid fa-cart-flatbed-suitcase"></i>
+                                                            <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
+                                                                Bags
+                                                            </p>
+                                                            <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
+                                                                className="fa-solid fa-angle-down"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{position: "relative"}}>
+                                                        {
+                                                            isShowDurationFilter && 
+                                                            <DurationFilter 
+                                                                flightsMinDuration={flightsMinDuration}
+                                                                flightsMaxDuration={flightsMaxDuration}
+                                                                SLIDER_MIN_PERCENT={D_SLIDER_MIN_PERCENT}
+                                                                slideDurationFilter={slideDurationFilter}
+                                                                durationSlider={durationSlider}
+                                                                flightsSliderMaxDuration={flightsSliderMaxDuration}
+                                                                hideDurationFilter={hideDurationFilter} 
+                                                            />
+                                                        }
+                                                        <div onClick={showDurationFilter}
+                                                            className="hover_bg-grey show_only_mobile_flex" style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
+                                                            <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 17}} 
+                                                                className="fa-solid fa-hourglass-half"></i>    
+                                                        </div>
+                                                        <div onClick={showDurationFilter}
+                                                            className="mobile_hidden hover_bg-grey" style={{marginLeft: 5, cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
+                                                            <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 13}} 
+                                                                className="fa-solid fa-hourglass-half"></i>
+                                                            <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
+                                                                Duration
+                                                            </p>
+                                                            <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
+                                                                className="fa-solid fa-angle-down"></i>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    }
                                 </div>
                             </div>
                         }

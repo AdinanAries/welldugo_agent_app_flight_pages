@@ -47,6 +47,7 @@ const CheckoutInfo = (props) => {
         bookingIntent,  
         setBookingIntent,
         cancel_checkout,
+        bookingEngine
     } = props;
 
     /*console.log("Checkout Infor", flight);
@@ -672,6 +673,7 @@ const CheckoutInfo = (props) => {
             </div>
             <div className="checkout_page_all_info_flex_right">
                 <PriceSummary 
+                    bookingEngine={bookingEngine}
                     buttonFunction={props.showPNRPage}
                     backButtonFunction={cancel_checkout}
                     buttonText="Passengers" 

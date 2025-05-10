@@ -35,6 +35,7 @@ export default function CheckoutPage(props){
         setPaymentIntent,
         bookingIntent,
         setBookingIntent,
+        bookingEngine,
     } = props;
 
     // For Stripe
@@ -602,6 +603,7 @@ export default function CheckoutPage(props){
                         {
                             (activePage===CONSTANTS.checkout_pages.info) ?
                                 <CheckoutInfo
+                                    bookingEngine={bookingEngine}
                                     cancel_checkout={props.cancel_checkout}
                                     flight={payload}
                                     showPNRPage={showPNRPage}
@@ -630,6 +632,7 @@ export default function CheckoutPage(props){
                         {
                             (activePage===CONSTANTS.checkout_pages.pnr) ?
                                 <PassengerNameRecord
+                                    bookingEngine={bookingEngine}
                                     showInfoPage={showInfoPage}
                                     setResponsibleAdultForInfant={setResponsibleAdultForInfant}
                                     savePassengerInfo={savePassengerInfo}
@@ -642,6 +645,7 @@ export default function CheckoutPage(props){
                         {
                             (activePage===CONSTANTS.checkout_pages.payment) ?
                                 <PaymentPage
+                                    bookingEngine={bookingEngine}
                                     loadingStages={stage}
                                     showPNRPage={showPNRPage}
                                     paymentIntent={paymentIntent}

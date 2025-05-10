@@ -15,6 +15,7 @@ const CheckoutForm = (props) => {
     loadingStages,
     setBookingIntent,
     checkoutPayload,
+    bookingEngine,
   } = props;
 
   const API_HOST=getApiHost();
@@ -120,7 +121,11 @@ const CheckoutForm = (props) => {
         </div>
       }
       <button className='checkout_page_main_checkout_btn'
-        style={{width: "100%", margin: "10px 0", border: "none", fontFamily: "'Prompt', Sans-serif"}} disabled={!stripe}>
+        style={{
+              backgroundColor: bookingEngine?.actionButtonsBg,
+              color: bookingEngine?.actionButtonsTxtColor, 
+              borderRadius: bookingEngine?.actionButtonBorderRadius,
+              width: "100%", margin: "10px 0", border: "none", fontFamily: "'Prompt', Sans-serif"}} disabled={!stripe}>
           {
             (!paymentIntent?.id || paymentIntent?.status==="requires_payment_method") ? <>
               <i style={{marginRight: 10, color: "rgba(255,255,255,0.5)"}} className="fa fa-credit-card"></i>

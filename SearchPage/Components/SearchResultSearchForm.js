@@ -9,7 +9,8 @@ import { show_search_page } from "../../../helpers/PageRoutingFuncs";
 function SearchForm( props ){
 
     const {
-        bookingEngine
+        bookingEngine,
+        agentDetails,
     } = props;
 
     useEffect(()=>{
@@ -305,19 +306,38 @@ function SearchForm( props ){
                         </div>
                     </div>
                     <div className="sp_search_form_submit_btn_flex_container">
-                        <div className="display_flex_on_1000px"
-                                onClick={()=>document.getElementById('search_list_main__settings_section').style.display='block'}
-                                style={{display: "none", width: "calc(100% - 50px)", borderRadius: 8, borderTopRightRadius: 8, borderBottomRightRadius: 8,
-                                    backgroundColor: "rgba(199, 81, 185, 0.1)",
-                                    border: "1px solid rgba(199, 81, 185, 0.1)", padding: 5, paddingRight: 25, marginRight: 10, alignItems: "center", marginTop: 10}}>
-                            <p style={{display: "flex", justifyContent: "center", alignItems: "center", width: 40, height: 40,}}>
-                                <i className="fa fa-sliders" aria-hidden="true"></i>
-                            </p>
-                            <div>
-                                <p style={{fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)", fontSize: 13}}>
-                                    Stops & Airline Filters & Price Sorting</p>
+                        {
+                            bookingEngine?.showSearchFilters ?
+                            <div className="display_flex_on_1000px"
+                                    onClick={()=>document.getElementById('search_list_main__settings_section').style.display='block'}
+                                    style={{display: "none", width: "calc(100% - 50px)", borderRadius: 8, borderTopRightRadius: 8, borderBottomRightRadius: 8,
+                                        backgroundColor: "rgba(199, 81, 185, 0.1)",
+                                        border: "1px solid rgba(199, 81, 185, 0.1)", padding: 5, paddingRight: 25, marginRight: 10, alignItems: "center", marginTop: 10}}>
+                                <p style={{display: "flex", justifyContent: "center", alignItems: "center", width: 40, height: 40,}}>
+                                    <i className="fa fa-sliders" aria-hidden="true"></i>
+                                </p>
+                                <div>
+                                    <p style={{fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)", fontSize: 13}}>
+                                        Stops & Airline Filters & Price Sorting</p>
+                                </div>
+                            </div> : <div className="display_flex_on_1000px" style={{display: "none", width: "calc(100% - 70px)", marginTop: 10, marginLeft: 20}}>
+                                <div>
+                                    <p style={{fontSize: 12, color: "rgba(0,0,0,0.8)"}}>
+                                        <i style={{fontSize: 12, marginRight: 10, color: "rgba(0, 0, 0, 0.8)"}}
+                                            className="fa-solid fa-user-tie"></i>
+                                        {(agentDetails?.first_name)} {(agentDetails?.last_name)}
+                                    </p>
+                                    <p style={{color: "rgba(0,0,0,0.8)", fontSize: 12}}>
+                                        <i style={{fontSize: 12, marginRight: 10, color: "rgba(0, 0, 0, 0.8)"}}
+                                            className="fa-solid fa-envelope"></i>
+                                        {agentDetails?.email}</p>
+                                    <p style={{color: "rgba(0,0,0,0.8)", fontSize: 12}}>
+                                        <i style={{fontSize: 12, marginRight: 10, color: "rgba(0, 0, 0, 0.8)"}}
+                                            className="fa-solid fa-phone"></i>
+                                        {agentDetails?.phone}</p>
+                                </div>
                             </div>
-                        </div>
+                        }
                         <div onClick={searchOnSubmit} id="sp_search_form_submit_btn" 
                             style={{borderRadius: `${bookingEngine?.searchButtonBorderRadius}%`,
                                     background: bookingEngine?.actionButtonsBg, width: 55, height: 55, marginTop: -5, display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center"}} className="searchBtn">

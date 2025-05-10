@@ -264,6 +264,7 @@ const SearchPageMain = (props) => {
                 <div style={{paddingTop: 90}}>
                     <SearchResultSearchForm 
                         bookingEngine={bookingEngine}
+                        agentDetails={agentDetails}
                         submitFromSearchPage={submitFromSearchPage} />
                     {
                         searchObjectIncomplete ?
@@ -326,6 +327,7 @@ const SearchPageMain = (props) => {
                             selectFlightOffer={selectFlightOffer}
                             flights={flights} loading={loading}
                             SEARCH_OBJ={SEARCH_OBJ}
+                            agentDetails={agentDetails}
                         />
                         }
                     {
