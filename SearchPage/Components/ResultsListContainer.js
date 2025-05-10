@@ -518,17 +518,17 @@ export default function ResultsListContainer(props){
                                                     <div onClick={showTimesFilter}
                                                         className="hover_bg-grey show_only_mobile_flex" 
                                                             style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
-                                                        <i style={{color: "#c751b9", fontSize: 17}} 
+                                                        <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 17}} 
                                                             className="fa-solid fa-business-time"></i>    
                                                     </div>
                                                     <div onClick={showTimesFilter}
                                                         className="mobile_hidden hover_bg-grey" style={{cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
-                                                        <i style={{marginRight: 10, color: "#c751b9", fontSize: 13.5}} 
+                                                        <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 13.5}} 
                                                             className="fa-solid fa-business-time"></i>
-                                                        <p style={{color: "rgb(23, 87, 148)", fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
+                                                        <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
                                                             Time
                                                         </p>
-                                                        <i style={{marginLeft: 15, color: "rgba(0,0,0,0.7)", fontSize: 13}} 
+                                                        <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
                                                             className="fa-solid fa-angle-down"></i>
                                                     </div>
                                                 </div>
@@ -548,17 +548,17 @@ export default function ResultsListContainer(props){
                                                     }
                                                     <div onClick={showBagsFilter}
                                                         className="hover_bg-grey show_only_mobile_flex" style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
-                                                        <i style={{color: "#c751b9", fontSize: 19}} 
+                                                        <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 19}} 
                                                             className="fa-solid fa-person-walking-luggage"></i>    
                                                     </div>
                                                     <div onClick={showBagsFilter}
                                                         className="mobile_hidden hover_bg-grey" style={{cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
-                                                        <i style={{marginRight: 10, color: "#c751b9", fontSize: 15}} 
+                                                        <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 15}} 
                                                             className="fa-solid fa-person-walking-luggage"></i>
-                                                        <p style={{color: "rgb(23, 87, 148)", fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
+                                                        <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
                                                             Bags
                                                         </p>
-                                                        <i style={{marginLeft: 15, color: "rgba(0,0,0,0.7)", fontSize: 13}} 
+                                                        <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
                                                             className="fa-solid fa-angle-down"></i>
                                                     </div>
                                                 </div>
@@ -577,17 +577,17 @@ export default function ResultsListContainer(props){
                                                     }
                                                     <div onClick={showDurationFilter}
                                                         className="hover_bg-grey show_only_mobile_flex" style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
-                                                        <i style={{color: "#c751b9", fontSize: 17}} 
+                                                        <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 17}} 
                                                             className="fa-solid fa-clock"></i>    
                                                     </div>
                                                     <div onClick={showDurationFilter}
                                                         className="mobile_hidden hover_bg-grey" style={{marginLeft: 5, cursor: "pointer", padding: "7px 13px", borderRadius: 8, display: "flex", alignItems: "center"}}>
-                                                        <i style={{marginRight: 10, color: "#c751b9", fontSize: 13}} 
+                                                        <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 13}} 
                                                             className="fa-solid fa-clock"></i>
-                                                        <p style={{color: "rgb(23, 87, 148)", fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
+                                                        <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
                                                             Duration
                                                         </p>
-                                                        <i style={{marginLeft: 15, color: "rgba(0,0,0,0.7)", fontSize: 13}} 
+                                                        <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
                                                             className="fa-solid fa-angle-down"></i>
                                                     </div>
                                                 </div>
@@ -597,18 +597,18 @@ export default function ResultsListContainer(props){
                                                     }
                                                     <div onClick={showPricesGrid}
                                                         className="hover_bg-grey show_only_mobile_flex" style={{display: "none", cursor: "pointer", borderRadius: "100%", height: 40, width: 40, justifyContent: "center", alignItems: "center"}}>
-                                                        <i style={{color: "blue", fontSize: 17}} 
+                                                        <i style={{color: bookingEngine?.searchFiltersIconColor, fontSize: 17}} 
                                                             className="fa-solid fa-chart-column"></i>    
                                                     </div>
                                                     <div onClick={showPricesGrid}
                                                         className="mobile_hidden hover_bg-grey"
                                                         style={{ marginLeft: 5, cursor: "pointer", padding: "7px 13px", display: "flex", alignItems: "center", borderRadius: 50}}>
-                                                        <i style={{marginRight: 10, color: "#c751b9", fontSize: 14}}
+                                                        <i style={{marginRight: 10, color: bookingEngine?.searchFiltersIconColor, fontSize: 14}}
                                                             class="fa-solid fa-chart-column"></i>
-                                                        <p style={{color: "rgb(23, 87, 148)", fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
+                                                        <p style={{color: bookingEngine?.searchFiltersTxtColor, fontSize: 13, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
                                                             Prices
                                                         </p>
-                                                        <i style={{marginLeft: 15, color: "rgba(0,0,0,0.7)", fontSize: 13}} 
+                                                        <i style={{marginLeft: 15, color: bookingEngine?.searchFiltersIndicatorColor, fontSize: 13}} 
                                                             className="fa-solid fa-angle-down"></i>
                                                     </div>
                                                 </div>
