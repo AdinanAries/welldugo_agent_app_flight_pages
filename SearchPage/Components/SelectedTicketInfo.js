@@ -398,7 +398,10 @@ const SelectedTicketInfo = (props) => {
                     {CHANGES_INFO}
                 </div>
                 <div className="selected_ticket_book_btn_container">
-                    <div style={{backgroundColor: bookingEngine?.actionButtonsBg, color: bookingEngine?.actionButtonsTxtColor}} 
+                    <div style={{backgroundColor: bookingEngine?.actionButtonsBg, 
+                        color: bookingEngine?.actionButtonsTxtColor,
+                        borderRadius: bookingEngine?.actionButtonBorderRadius
+                    }} 
                         onClick={
                             ()=>{book_item_onclick()}
                             /*()=>global.show_start_checkout_page(`${global.stringify_obj_for_template_strings(global.checkout_obj)}`)*/

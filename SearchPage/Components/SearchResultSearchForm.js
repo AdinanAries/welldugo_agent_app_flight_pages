@@ -183,7 +183,8 @@ function SearchForm( props ){
                                 }
                             } style={{cursor: "pointer", padding: 10, margin: 10, marginTop: 0, 
                                 backgroundColor: bookingEngine?.actionButtonsBg, 
-                                color: bookingEngine?.actionButtonsTxtColor, textAlign: "center", borderRadius: 9, textAlign: "center"}}>
+                                color: bookingEngine?.actionButtonsTxtColor, textAlign: "center", 
+                                borderRadius: bookingEngine?.actionButtonBorderRadius, textAlign: "center"}}>
                                 Done
                             </div>
                         </div>
@@ -318,7 +319,8 @@ function SearchForm( props ){
                             </div>
                         </div>
                         <div onClick={searchOnSubmit} id="sp_search_form_submit_btn" 
-                            style={{background: bookingEngine?.actionButtonsBg, width: 55, height: 55, marginTop: -5, display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center"}} className="searchBtn">
+                            style={{borderRadius: `${bookingEngine?.searchButtonBorderRadius}%`,
+                                    background: bookingEngine?.actionButtonsBg, width: 55, height: 55, marginTop: -5, display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center"}} className="searchBtn">
                             <i className="fa fa-search" style={{fontSize: 20, 
                                 color: bookingEngine?.actionButtonsIconColor}}></i>
                         </div>

@@ -65,8 +65,9 @@ export default function SelectedTicketPane(props){
                             This flight is no longer available
                         </p>
                         <div onClick={()=>{unselectFlightOffer();global.hide_selected_ticket_details_pane();}}
-                            style={{padding: "15px", backgroundColor: "crimson", cursor: "pointer", color: "white", textAlign: "center", margin: "auto", marginTop: 30, borderRadius: 50, width: 220, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)"}}>
-                            <i className="fa-solid fa-times" style={{marginRight: 10, color: "rgba(255,255,255,0.6)"}}></i>
+                            style={{padding: "15px", backgroundColor: bookingEngine?.closeButtonBgColor, cursor: "pointer", 
+                                color: bookingEngine?.closeButtonIconColor, textAlign: "center", margin: "auto", marginTop: 30, borderRadius: 50, width: 220, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)"}}>
+                            <i className="fa-solid fa-times" style={{marginRight: 10, color: bookingEngine?.closeButtonIconColor}}></i>
                             close</div>
                     </div>
                 </div>

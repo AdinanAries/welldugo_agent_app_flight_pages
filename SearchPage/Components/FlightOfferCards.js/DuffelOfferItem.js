@@ -214,7 +214,8 @@ const DuffelOfferItem = (props) => {
                             id={"each_ticket_item_more_details_btn_"+index}
                             style={{display: "flex", margin: "auto", 
                                 backgroundColor: bookingEngine?.actionButtonsBg, 
-                                color: bookingEngine?.actionButtonsIconColor, transition: "all 0.2s ease-out", alignItems: "center", justifyContent: "center", borderRadius: "100%", fontSize: 13, width: 30, height: 30, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)"}}>
+                                color: bookingEngine?.actionButtonsIconColor, transition: "all 0.2s ease-out", alignItems: "center", justifyContent: "center", 
+                                borderRadius: `${bookingEngine?.searchButtonBorderRadius}%`, fontSize: 13, width: 30, height: 30, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)"}}>
                             <i className="fa-solid fa-angle-down"></i>
                     </div>
                 </div>
@@ -248,12 +249,14 @@ const DuffelOfferItem = (props) => {
                     </div>
                     <div style={{display: "flex", justifyContent: "space-between", marginTop: 15,}}>
                         <div onClick={()=>{global?.show_selected_ticket_details_pane(); props?.selectFlightOffer(id); toggle_show_more_details();}}
-                            style={{width: "calc(100% - 45px)", borderRadius: 50, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", fontFamily: "'Prompt', Sans-serif", textAlign: "center", 
+                            style={{width: "calc(100% - 45px)", 
+                                borderRadius: bookingEngine?.actionButtonBorderRadius, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", fontFamily: "'Prompt', Sans-serif", textAlign: "center", 
                                 color: bookingEngine?.actionButtonsTxtColor, 
                                 backgroundColor: bookingEngine?.actionButtonsBg, fontSize: 14, padding: 10, cursor: "pointer"}}>
                             select
                         </div>
-                        <div onClick={toggle_show_more_details} style={{cursor: "pointer", width: 40, height: 40, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", borderRadius: "100%", 
+                        <div onClick={toggle_show_more_details} style={{cursor: "pointer", width: 40, height: 40, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", 
+                                borderRadius: `${bookingEngine?.closeButtonBorderRadius}%`, 
                                 background: bookingEngine?.closeButtonBgColor, display: "flex", justifyContent: "center", alignItems: "center"}}>
                             <i style={{color: bookingEngine?.closeButtonIconColor, fontSize: 13}} className="fa-solid fa-times"></i>
                         </div>
