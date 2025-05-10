@@ -132,15 +132,15 @@ const SearchFilters = (props) => {
                 <div style={{height: 50, display: "flex", flexDirection: "column", justifyContent: "center"}}>
                     <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                         <p style={{color: "rgba(0,0,0,0.5)", fontFamily: "'Prompt', Sans-serif", display: "flex", flexDirection: "column", justifyContent: "center", marginTop: 15}}>
-                            Sort by
+                            Sort:
                         </p>
                         <p onClick={()=>document.getElementById('search_list_main__settings_section').style.display='none'} id="close_filter_and_sort_btn" style={{color: "rgba(255,0,0,0.6)", fontSize: 33, marginRight: 5}}>
                             &times;
                         </p>
                     </div>
                 </div>
-                <div style={{marginTop: 10, marginBottom: 35}}>
-                    <div style={{display: "flex", alignItems: "center", backgroundColor: "rgba(0,0,0,0.1)", border: "1px solid rgba(0,0,0,0.1)", padding: 10, borderRadius: 50}}>
+                <div style={{marginBottom: 35}}>
+                    <div style={{display: "flex", alignItems: "center", padding: 10, borderRadius: 50}}>
                         <p>
                             <i style={{fontSize: 17, color: "rgba(0,0,0,0.5)", marginRight: 5}} 
                                 class="fa-solid fa-arrow-down-1-9"></i>
@@ -148,7 +148,7 @@ const SearchFilters = (props) => {
                         <select 
                             value={priceHighLowSort}
                             onChange={sortByHighestOrLowestPrice} 
-                            style={{border: "none", background: "none", fontSize: 13, width: "100%", color: "rgba(0,0,0,0.7)"}}>
+                            style={{border: "none", textDecoration: "underline", background: "none", fontSize: 13, width: "100%"}}>
                             <option value={0}>
                                 Price (Lowest)
                             </option>
@@ -159,10 +159,9 @@ const SearchFilters = (props) => {
                     </div>
                 </div>
             </div>
-            <p style={{color: "rgba(0,0,0,0.5)", fontSize: 14, marginBottom: 30, fontFamily: "'Prompt', Sans-serif",}}>
+            <p style={{color: "rgba(0,0,0,0.5)", fontSize: 14, marginBottom: 20, fontFamily: "'Prompt', Sans-serif",}}>
                 <i style={{marginRight: 7}} className="fa fa-sliders" aria-hidden="true"></i>
-                Filter by</p>
-
+                Filters:</p>
             <div style={{marginBottom: 30}}>
                 <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", marginBottom: 15}}>
                     <p style={{fontWeight: "bolder", color: "rgba(0,0,0,0.7)", fontSize: 14}}>Stops</p>
