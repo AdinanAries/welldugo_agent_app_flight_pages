@@ -268,60 +268,81 @@ const SearchPageMain = (props) => {
                         submitFromSearchPage={submitFromSearchPage} />
                     {
                         searchObjectIncomplete ?
-                        <div style={{paddingBottom: 20}}>
-                            <div style={{padding: "30px 20px", margin: "60px 10px", marginBottom: 50, 
-                                    backgroundColor: "black", borderRadius: 10}}>
-                                <p style={{border: "1px solid rgba(255,255,255,0.2)", backgroundColor: "rgba(255,255,255,0.1)", marginBottom: 30, padding: 20, display: "flex", justifyContent: "center", color: "white"}}>
-                                    <i style={{marginRight: 10, color: "red"}}
-                                        className="fa-solid fa-exclamation-triangle"></i>
-                                    Please complete the search form to begin search...
-                                </p>
-                                <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column"}}>
-                                    <div>
-                                        <img style={{width: 60}}
-                                            src={LOGO_PLACEHOLDER}/>
-                                    </div>
-                                    <div style={{marginTop: 5}}>
-                                        <h1 style={{color: "white", fontSize: 20, textAlign: "center"}}>
-                                            Business Name</h1>
-                                        <p style={{fontWeight: "bolder", fontSize: 12, color: "#c751b9", textAlign: "center", marginBottom: 15, marginTop: 20, letterSpacing: 0.5, fontFamily: "Courgette"}}>
-                                                - Agent Details -</p>
-                                        <p style={{ display: "flex", justifyContent: "center", color: "white", marginTop: 10}}>
-                                            <i style={{marginRight: 10, color: "rgba(255,255,255,0.8)"}}
-                                                className="fa-solid fa-user-tie"></i>
-                                            {(agentDetails?.first_name)} {(agentDetails?.last_name)}
+                        <>
+                            {
+                                !bookingEngine?.hideGreetingsCard ?
+                                <div style={{paddingBottom: 20}}>
+                                    <div style={{padding: "30px 20px", margin: "60px 10px", marginBottom: 50, 
+                                            backgroundColor: bookingEngine?.greetingsCardBg, 
+                                            borderRadius: bookingEngine?.greetingsCardBorderRadius}}>
+                                        <p style={{border: "1px solid rgba(255,255,255,0.2)", backgroundColor: "rgba(255,255,255,0.1)", marginBottom: 30, padding: 20, display: "flex", justifyContent: "center", 
+                                            color: bookingEngine?.greetingsCardTextColor}}>
+                                            <i style={{marginRight: 10, color: "red"}}
+                                                className="fa-solid fa-exclamation-triangle"></i>
+                                            Please complete the search form to begin search...
                                         </p>
-                                        <p style={{color: "rgba(255,255,255,0.8)", fontSize: 13, textAlign: "center", marginTop: 5}}>
-                                            {agentDetails?.phone}, {agentDetails?.email}</p>
-                                        <div className="footer_section_each_flex_section_container" style={{marginTop: 20}}>
-                                            <p style={{fontWeight: "bolder", color: "#c751b9", fontSize: 12, textAlign: "center", marginBottom: 15, letterSpacing: 0.5, fontFamily: "Courgette"}}>
-                                                - Contact Us -</p>
-                                            <div style={{marginTop: 10}}>
-                                                <p style={{color: "white", textAlign: "center"}}>
-                                                    <i style={{marginRight: 10, opacity: 0.4, marginBottom: 8}} className="fa fa-envelope"></i>
-                                                    business@email.com
+                                        <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column"}}>
+                                            {
+                                                !bookingEngine?.hideCompanyLogo &&
+                                                <div>
+                                                    <img style={{width: 60}}
+                                                        src={LOGO_PLACEHOLDER}/>
+                                                </div>
+                                            }
+                                            <div style={{marginTop: 5}}>
+                                                {
+                                                    !bookingEngine?.hideCompanyName &&
+                                                    <h1 style={{color: bookingEngine?.greetingsCardTextColor, fontSize: 20, textAlign: "center"}}>
+                                                        Business Name</h1>
+                                                }
+                                                <p style={{fontWeight: "bolder", fontSize: 12, color: bookingEngine?.greetingsCardTitleColor, textAlign: "center", marginBottom: 15, marginTop: 20, letterSpacing: 0.5, fontFamily: "Courgette"}}>
+                                                        - Agent Details -</p>
+                                                <p style={{ display: "flex", justifyContent: "center", 
+                                                    color: bookingEngine?.greetingsCardTextColor, marginTop: 10}}>
+                                                    <i style={{marginRight: 10, color: bookingEngine?.greetingsCardIconColor}}
+                                                        className="fa-solid fa-user-tie"></i>
+                                                    {(agentDetails?.first_name)} {(agentDetails?.last_name)}
                                                 </p>
-                                                <p style={{color: "white", textAlign: "center"}}>
-                                                    <i style={{marginRight: 10, opacity: 0.4, marginBottom: 10}} className="fa fa-phone"></i>
-                                                    +1 123-123-123
-                                                </p>
-                                                <p style={{color: "white", textAlign: "center"}}>
-                                                    <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
-                                                        <i style={{opacity: 0.5, marginBottom: 5, fontSize: 19}} className="fa fa-facebook"></i>
-                                                    </span>
-                                                    <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
-                                                        <i style={{opacity: 0.5, marginBottom: 5, fontSize: 19}} className="fa fa-twitter"></i>
-                                                    </span>
-                                                    <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
-                                                        <i style={{opacity: 0.5, marginBottom: 5, fontSize: 19}} className="fa fa-instagram"></i>
-                                                    </span>
-                                                </p>
+                                                <p style={{color: bookingEngine?.greetingsCardSecTextColor, fontSize: 13, textAlign: "center", marginTop: 5}}>
+                                                    {agentDetails?.phone}, {agentDetails?.email}</p>
+                                                <div className="footer_section_each_flex_section_container" style={{marginTop: 20}}>
+                                                    <p style={{fontWeight: "bolder", color: bookingEngine?.greetingsCardTitleColor, fontSize: 12, textAlign: "center", marginBottom: 15, letterSpacing: 0.5, fontFamily: "Courgette"}}>
+                                                        - Contact Us -</p>
+                                                    <div style={{marginTop: 10}}>
+                                                        <p style={{color: bookingEngine?.greetingsCardTextColor, textAlign: "center"}}>
+                                                            <i style={{marginRight: 10, color: bookingEngine?.greetingsCardIconColor, marginBottom: 8}} className="fa fa-envelope"></i>
+                                                            business@email.com
+                                                        </p>
+                                                        <p style={{color: bookingEngine?.greetingsCardTextColor, textAlign: "center"}}>
+                                                            <i style={{marginRight: 10, color: bookingEngine?.greetingsCardIconColor, marginBottom: 10}} className="fa fa-phone"></i>
+                                                            +1 123-123-123
+                                                        </p>
+                                                        <p style={{color: bookingEngine?.greetingsCardIconColor, textAlign: "center"}}>
+                                                            <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
+                                                                <i style={{marginBottom: 5, fontSize: 19}} className="fa fa-facebook"></i>
+                                                            </span>
+                                                            <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
+                                                                <i style={{marginBottom: 5, fontSize: 19}} className="fa fa-twitter"></i>
+                                                            </span>
+                                                            <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
+                                                                <i style={{marginBottom: 5, fontSize: 19}} className="fa fa-instagram"></i>
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                </div> : 
+                                <div style={{height: 300}}>
+                                    <p style={{border: "1px solid rgba(255,0,0,0.1)", backgroundColor: "rgba(255,0,0,0.1)", marginTop: 50, padding: 20, display: "flex", justifyContent: "center"}}>
+                                        <i style={{marginRight: 10, color: "red"}}
+                                            className="fa-solid fa-exclamation-triangle"></i>
+                                        Please complete the search form to begin search...
+                                    </p>
                                 </div>
-                            </div>
-                        </div> :
+                            }
+                        </> :
                         <ResultsListContainer
                             bookingEngine={bookingEngine}
                             selectFlightOffer={selectFlightOffer}
