@@ -293,7 +293,11 @@ const SearchPageMain = (props) => {
                                                 {
                                                     !bookingEngine?.hideCompanyName &&
                                                     <h1 style={{color: bookingEngine?.greetingsCardTextColor, fontSize: 20, textAlign: "center"}}>
-                                                        Business Name</h1>
+                                                        {
+                                                            agentDetails?.company_info?.business_name ||
+                                                            "Business Name"
+                                                        }
+                                                    </h1>
                                                 }
                                                 <p style={{fontWeight: "bolder", fontSize: 12, color: bookingEngine?.greetingsCardTitleColor, textAlign: "center", marginBottom: 15, marginTop: 20, letterSpacing: 0.5, fontFamily: "Courgette"}}>
                                                         - Agent Details -</p>
@@ -311,11 +315,17 @@ const SearchPageMain = (props) => {
                                                     <div style={{marginTop: 10}}>
                                                         <p style={{color: bookingEngine?.greetingsCardTextColor, textAlign: "center"}}>
                                                             <i style={{marginRight: 10, color: bookingEngine?.greetingsCardIconColor, marginBottom: 8}} className="fa fa-envelope"></i>
-                                                            business@email.com
+                                                            {
+                                                                agentDetails?.company_info?.business_email ||
+                                                                "N/A"
+                                                            }
                                                         </p>
                                                         <p style={{color: bookingEngine?.greetingsCardTextColor, textAlign: "center"}}>
                                                             <i style={{marginRight: 10, color: bookingEngine?.greetingsCardIconColor, marginBottom: 10}} className="fa fa-phone"></i>
-                                                            +1 123-123-123
+                                                            {
+                                                                agentDetails?.company_info?.business_phone ||
+                                                                "N/A"
+                                                            }
                                                         </p>
                                                         <p style={{color: bookingEngine?.greetingsCardIconColor, textAlign: "center"}}>
                                                             <span style={{padding: "5px", marginRight: 10, borderRadius: 4, cursor: "pointer"}}>
