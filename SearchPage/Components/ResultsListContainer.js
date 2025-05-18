@@ -391,7 +391,7 @@ export default function ResultsListContainer(props){
                     <div style={{padding: "30px 20px", borderRadius: 8, backgroundColor: "rgba(0,0,0,0.07)", marginTop: 30, border: "1px solid rgba(0, 0, 0, 0.1)"}}>
                         <h3 style={{marginBottom: 10}}>
                             <i style={{marginRight: 10}} className="fa-solid fa-building"></i>
-                            Business Name</h3>
+                            {agentDetails?.company_info?.business_name}</h3>
                         <p style={{fontSize: 13}}>
                             <i style={{marginRight: 10, color: "rgba(0,0,0,0.5)"}}
                                 className="fa-solid fa-user-tie"></i>
