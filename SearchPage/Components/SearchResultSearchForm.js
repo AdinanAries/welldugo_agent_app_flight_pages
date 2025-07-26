@@ -224,7 +224,7 @@ function SearchForm( props ){
                                         setTimeout(() => {
                                             if(document.getElementById("sp_from_where_airports_auto_complete_input"))
                                                 document.getElementById("sp_from_where_airports_auto_complete_input").style.display = "none";
-                                        }, 200);
+                                        }, 500);
                                     }} className="airports_auto_complete_input" type="text" placeholder="Where are you leaving from?"/>
                                 <div className="airports_auto_complete_list_container">
                                     <ul id="sp_flights_auto_complete_from_where_input_list">
@@ -269,7 +269,7 @@ function SearchForm( props ){
                                         setTimeout(() => {
                                             if(document.getElementById("sp_to_where_airports_auto_complete_input"))
                                                 document.getElementById("sp_to_where_airports_auto_complete_input").style.display = "none";
-                                        }, 200);
+                                        }, 500);
                                     }} className="airports_auto_complete_input" type="text" placeholder="Where are you going to?"/>
                                 <div className="airports_auto_complete_list_container">
                                     <ul id="sp_flights_auto_complete_to_where_input_list">

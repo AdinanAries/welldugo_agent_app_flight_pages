@@ -11,13 +11,17 @@ import { show_prompt_on_Bot_AD_tips_popup } from "../../../components/HPSupport"
 import { getDataSummeries } from "../../../helpers/FlightsFilterHelpers";
 import { getClient } from "../../../helpers/general";
 import LOGO_PLACEHOLDER from "../../../LOGO_PLACEHOLDER.jpg";
+import { saveBookedItineraryItem } from "../../../services/agentServices";
 
 const SearchPageMain = (props) => {
 
     const {
+        change_product_type,
         productType,
         agentDetails,
         bookingEngine,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
     
     let [ flights, setFlights ] = useState([]);
@@ -52,7 +56,7 @@ const SearchPageMain = (props) => {
 
     useEffect(() => {
        setFlightsResults();
-    }, [])
+    }, []);
 
     const setFlightsResults = async () => {
 
@@ -78,6 +82,57 @@ const SearchPageMain = (props) => {
                 runBotPrompt();
         else
             runBotPrompt();
+
+        // Send back message to oc about sucess status of search link verification
+        if(localStorage.getItem("verify_search_link")){
+            let __results_data = {};
+            if(res?.data?.length>0){
+                __results_data = {
+                    ...__results_data,
+                    status: "success",
+                    total_results: res?.data?.length,
+                }
+            } else {
+                __results_data = {
+                    ...__results_data,
+                    status: "fail",
+                    total_results: 0,
+                }
+            }
+            let _msg_to_send = JSON.parse(localStorage.getItem("verify_search_link"));
+
+            const __obj = _msg_to_send?.postBody?.item;
+            const agentToKen = __obj?.userToken;
+            const __obj_to_save = {
+                user_id: __obj?.user_id,
+                itinerary_id: __obj?.itinerary_id, 
+                booking_id: "",
+                confirmation_number: "",
+                product_type: __obj?.product_type,
+                item_id: __obj?.item_id,
+                item_details: __obj?.item_details,
+                link_type: "search_link", 
+                url_link: __obj?.link, 
+                is_booked: false, 
+                customer_email: "",
+                is_verified: true,
+            }
+            const booked_itin_item_res = await saveBookedItineraryItem(__obj_to_save, agentToKen);
+            if(booked_itin_item_res?._id){
+                alert("Link saved to list of search links for this item!!");
+            }else{
+                alert("Link was verified! However, Error occured during saving to list of links for this item!");
+            }
+            delete _msg_to_send.from_welldugo_oc;
+            _msg_to_send = {
+                ..._msg_to_send,
+                from_welldugo_agent_app: true,
+                search_arams: SEARCH_OBJ,
+                results_data: __results_data,
+            }
+            localStorage.removeItem("verify_search_link");
+            window.parent.postMessage(JSON.stringify(_msg_to_send), "*");
+        }
     }
 
     const submitFromSearchPage = async () => {
@@ -92,6 +147,19 @@ const SearchPageMain = (props) => {
         global.autoSelectAirportForInputField(SEARCH_OBJ.itinerary.departure.airport, "sp_search_forms_from_where_input_fld");
         global.autoSelectAirportForInputField(SEARCH_OBJ.itinerary.arrival.airport, "sp_search_forms_to_where_input_fld");
     }, []);
+
+    useEffect(()=>{
+        // Set corresponding product type here
+        if(currentParentMessge?.postBody?.item?.product_type){
+            if(currentParentMessge?.postBody?.item?.product_type==="flight"){
+                change_product_type(0)
+            }else if(currentParentMessge?.postBody?.item?.product_type==="hotel"){
+                change_product_type(1)
+            }else if(currentParentMessge?.postBody?.item?.product_type==="rental_car"){
+                change_product_type(2)
+            }
+        }
+    }, [currentParentMessge]);
 
     useEffect(()=>{
         // Getting Weather
@@ -267,6 +335,40 @@ const SearchPageMain = (props) => {
                         agentDetails={agentDetails}
                         submitFromSearchPage={submitFromSearchPage} />
                     {
+                        (
+                            (hasNewMessageFromParent &&
+                            currentParentMessge?.from_welldugo_oc &&
+                            currentParentMessge?.type==="engine-parameters") ||
+                            (localStorage.getItem("engine_parameters"))
+                        ) && <div style={{backgroundColor: "crimson", padding: 20, marginTop: 5, borderRadius: 8}}>
+                            <div className="wrapper">
+                                <p style={{color: "white", fontSize: 13}}>
+                                    <i style={{marginRight: 10, color: "yellow"}}
+                                        className="fa-solid fa-exclamation-triangle"></i>
+                                    This search is using search rules set from the operational center. These include price-bound type and profit, data supplier, etc. 
+                                </p>
+                                <div>
+                                    <span onClick={()=>{
+                                        if(localStorage.getItem("engine_parameters") && !currentParentMessge?.from_welldugo_oc && currentParentMessge?.type!=="engine-parameters"){
+                                                const _msg_to_send = {
+                                                    from_welldugo_agent_app: true,
+                                                    type: "engine-parameters",
+                                                    postBody: {} //empty object will reset on Parent (OC)
+                                                }
+                                                window.parent.postMessage(JSON.stringify(_msg_to_send), "*");
+                                            }
+                                            localStorage.removeItem("engine_parameters");
+                                            window.location.reload();
+                                        }}
+                                        style={{color: "yellow", cursor: "pointer", fontSize: 13, textDecoration: "underline"}}
+                                    >
+                                        Click Here To Reset Booking Engine
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    {
                         searchObjectIncomplete ?
                         <>
                             {
@@ -359,8 +461,10 @@ const SearchPageMain = (props) => {
                             flights={flights} loading={loading}
                             SEARCH_OBJ={SEARCH_OBJ}
                             agentDetails={agentDetails}
+                            hasNewMessageFromParent={hasNewMessageFromParent}
+                            currentParentMessge={currentParentMessge}
                         />
-                        }
+                    }
                     {
                         selectedFlightId ?
                         <SelectedTicketPane
@@ -368,6 +472,8 @@ const SearchPageMain = (props) => {
                             selectedFlightId={selectedFlightId}
                             unselectFlightOffer={unselectFlightOffer}
                             begin_checkout={props.begin_checkout}
+                            hasNewMessageFromParent={hasNewMessageFromParent}
+                            currentParentMessge={currentParentMessge}
                         />
                         : ""
                     }

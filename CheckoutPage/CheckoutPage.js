@@ -8,7 +8,7 @@ import { markup } from '../../helpers/Prices';
 import { FLIGHT_DATA_ADAPTER } from "../../helpers/FlightDataAdapter";
 import { show_prompt_on_Bot_AD_tips_popup } from '../../components/HPSupport';
 import { createFlightOrder } from '../../services/flightsServices';
-import { logFlightBooking } from "../../services/bookingHistoryServices";
+import { fetchLoggedBookingByIdAndEmail, logFlightBooking } from "../../services/bookingHistoryServices";
 import { toast } from 'react-toastify';
 import { useEffect, useState } from 'react';
 import OrderCompletedPage from './Components/OrderCompletedPage';
@@ -22,7 +22,8 @@ import passengerImg6 from "../../explore_destination_img5.jpg";
 import { getApiHost } from '../../Constants/Environment';
 import FullPageLoader from '../../components/FullPageLoader';
 import FlightConfirmationEmailMarkup from "../../helpers/FlightConfirmationEmailMarkup";
-import { getPriceMarkupPercentage } from '../../services/flightsServices';
+import { fetchAgentPriceMarkupInfo } from '../../services/agentServices';
+import { saveBookedItineraryItem } from '../../services/agentServices';
 
 let INCLUDED_CHECKED_BAGS_EACH_PSNGR_QUANTITY = {};
 export default function CheckoutPage(props){
@@ -36,6 +37,8 @@ export default function CheckoutPage(props){
         bookingIntent,
         setBookingIntent,
         bookingEngine,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
 
     // For Stripe
@@ -45,9 +48,10 @@ export default function CheckoutPage(props){
     const [ PRICES, SET_PRICES ] = useState(FLIGHT_DATA_ADAPTER.adaptPriceProps(payload));
     const [ overallTotal, setOverallTotal ] = useState(0);
     const [ activePage, setActivePage ] = useState(CONSTANTS.checkout_pages.info);
-    const [ isBookingConfirmed, setIsBookingConfirmed] = useState(false);
+    const [ isBookingConfirmed, setIsBookingConfirmed] = useState(false); // To Do
+    const [ getBookedFlightDetailsOnly, setGetBookedFlightDetailsOnly ] = useState(true);
     const [ comfirmedBookingResourceID, setComfirmedBookingResourceID ] = useState("");
-    const [ completedOrderDetails, setCompletedOrderDetails ] = useState({});
+    const [ completedOrderDetails, setCompletedOrderDetails ] = useState({});  // To Do
     const [ checkoutConfirmation, setCheckoutConfirmation ] = useState({
         type: "server_error",
         isError: false,
@@ -65,14 +69,82 @@ export default function CheckoutPage(props){
     const [ includedCheckedBagsNumber, setIncludedCheckedBagsNumber ] = useState(0);
     const [ servicesForPost, setServicesForPost ] = useState([]);
     const [ includedCB, setIncludedCB ] = useState({});
-    const [ PriceMarkupPercentage, setPriceMarkupPercentage ] = useState(0);
         
+    const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
+        type: "",
+        value: 0,
+    });
+    const [ canShowPrice, setCanShowPrice ] = useState({
+        profit_type: "",
+        with_price_bound_profit: false,
+        show: false,
+    });
+
     useEffect(()=>{
         (async()=>{
-            let perc = await getPriceMarkupPercentage();
-            setPriceMarkupPercentage(parseInt(perc));
+            let _pm_obj = {
+                type: "",
+                value: 0,
+            }
+            let _can_show_obj = {
+                profit_type: "",
+                with_price_bound_profit: false,
+                show: false,
+            }
+            setCanShowPrice(_can_show_obj);
+            setPriceMarkupValue(_pm_obj);
+            if(
+                hasNewMessageFromParent &&
+                currentParentMessge?.from_welldugo_oc &&
+                currentParentMessge?.type==="engine-parameters"
+            ){
+                if(currentParentMessge?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = currentParentMessge?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = currentParentMessge?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+                //currentParentMessge?.postBody?.current_price_bound_supplier: "duffel",
+            }else if(localStorage.getItem("engine_parameters")){
+                const engine_parameters = JSON.parse(localStorage.getItem("engine_parameters"));
+                if(engine_parameters?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = engine_parameters?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = engine_parameters?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                    console.log(engine_parameters);
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+            }else {
+                if(localStorage.getItem("agent")){
+                    const agent_id = localStorage.getItem("agent");
+                    if(agent_id || agent_id!=="undefined"){
+                        let _pm_res = await fetchAgentPriceMarkupInfo(agent_id);
+                        _pm_obj.type = _pm_res?.type;
+                        _pm_obj.value = _pm_res?.value;
+                        _can_show_obj.with_price_bound_profit = true;
+                        _can_show_obj.show = true;
+                    }
+                }
+            }
+
+            // Update State Here
+            setPriceMarkupValue({
+                type: _pm_obj?.type,
+                value: parseFloat(_pm_obj?.value),
+            });
+            setCanShowPrice({
+                ...canShowPrice,
+                with_price_bound_profit: _can_show_obj?.with_price_bound_profit,
+                show: _can_show_obj?.show,
+            });
         })();
-    }, []);
+    }, [currentParentMessge]);
 
     useEffect(()=>{
         // These help incase a new flight was selected
@@ -86,6 +158,37 @@ export default function CheckoutPage(props){
     useEffect(()=>{
         calcOverall_Total();
     });
+
+    useEffect(()=>{
+        (async()=>{
+            // Only Showing Booking Details
+            // @wdg_client_domain_url/search?product=0&booking_id=logged_booking_id&cust_eml=customer_email&ag=agent_id
+            const params = new URLSearchParams(window.location.search);
+            if(
+                params.has("booking_id") &&
+                params.has("cust_eml")
+            ){
+                if(
+                    params.has('product') && 
+                    parseInt(params.get('product')) === CONSTANTS?.product_types?.flights
+                ){
+                    let _b_id = params.get("booking_id").trim();
+                    let __email = params.get("cust_eml").trim();
+                    let _b_res = await fetchLoggedBookingByIdAndEmail(_b_id, __email);
+                    console.log(_b_res)
+                    if(_b_res?._id){
+                        const _payload = _b_res?.originPayloads[0];
+                        setIsBookingConfirmed(true);
+                        setComfirmedBookingResourceID(_b_res?._id);
+                        setCompletedOrderDetails(_payload);
+                        SET_PRICES(FLIGHT_DATA_ADAPTER.adaptPriceProps(_payload));
+                    }
+                }
+            }else{
+                setGetBookedFlightDetailsOnly(false);
+            }
+        })()
+    }, []);
 
     const endCheckoutProcessing = () => {
         setStage({percentage: 0, step: "", message: ""});
@@ -233,7 +336,7 @@ export default function CheckoutPage(props){
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        amount: markup(overallTotal, PriceMarkupPercentage).new_price.toFixed(2),
+                        amount: markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price.toFixed(2),
                         currency: 'usd'
                     })
                 }).then(res=>res.json()).then(data=>data).catch(e=>console.log(e));
@@ -408,6 +511,51 @@ export default function CheckoutPage(props){
             }).then(res=>res.json()).then(data=>data).catch(e=>console.log(e));
             console.log(email_res);
 
+            // If Itinerary Item Booking
+            if(localStorage.getItem("book_itinerary_item")){
+                const __obj = JSON.parse(localStorage.getItem("book_itinerary_item"))?.postBody?.item;
+                const agentToKen = __obj?.userToken;
+                const __obj_to_save = {
+                    user_id: __obj?.user_id,
+                    itinerary_id: __obj?.itinerary_id, 
+                    booking_id: logged._id,
+                    confirmation_number: res.data?.booking_reference,
+                    product_type: __obj?.product_type,
+                    prod_index: __obj?.prod_index,
+                    item_index: __obj?.item_index,
+                    item_id: __obj?.item_id,
+                    item_details: __obj?.item_details,
+                    link_type: "booking_id", 
+                    url_link: `@wdg_client_domain_url/search?product=0&booking_id=${logged._id}&cust_eml=${res.data?.passengers[0]?.email}&ag=${__obj?.user_id}`, // to do (Also, wdg_client_domain=>placeholder to be replaced with actual domain url)
+                    is_booked: true, 
+                    customer_email: res.data?.passengers[0]?.email,
+                    is_verified: true,
+                }
+                const booked_itin_item_res = await saveBookedItineraryItem(__obj_to_save, agentToKen);
+                if(booked_itin_item_res?._id){
+                    alert("You have completed itinerary item booking!");
+                }else{
+                    alert("You're booking was completed successfully! However, linking it to the itinerary item returned an error. Please manually search the booking on your Operational Center and Link it or Contact support for help!");
+                }
+                if(booked_itin_item_res?._id){
+                    const _msg_to_send = {
+                        from_welldugo_agent_app: true,
+                        type: "completed-itinerary-item-booking",
+                        postBody: {
+                            item: {
+                                ...__obj_to_save,
+                                link: __obj_to_save?.url_link,
+                                booked_itin_item_id: booked_itin_item_res?._id,
+                                booking_details: res.data,
+                                log_details: logged,
+                            }
+                        }
+                    }
+                    window.parent.postMessage(JSON.stringify(_msg_to_send), "*");
+
+                }
+            }
+
             // Redirecting to Confirmation Page and Cleaning up
             await CompletedBookingCleanup();
         }else{
@@ -533,20 +681,46 @@ export default function CheckoutPage(props){
                     stage={stage}
                     setStage={setStage}
                     endCheckoutProcessing={endCheckoutProcessing}
+                    hasNewMessageFromParent={hasNewMessageFromParent}
+                    currentParentMessge={currentParentMessge}
                 /> : ""
             }
             <div className="wrapper">
 
                 {
-                    isBookingConfirmed ?
-                    <OrderCompletedPage
-                        bookingID={comfirmedBookingResourceID}
-                        LogMeIn={LogMeIn}
-                        pickAnotherFlightOnclick={pickAnotherFlightOnclick}
-                        goHome={goHome}
-                        completedOrderDetails={completedOrderDetails}
-                        prices={PRICES}
-                    /> :
+                    (isBookingConfirmed || getBookedFlightDetailsOnly) ?
+                    <>
+                        {
+                            isBookingConfirmed ?
+                            <OrderCompletedPage
+                                bookingID={comfirmedBookingResourceID}
+                                LogMeIn={LogMeIn}
+                                pickAnotherFlightOnclick={pickAnotherFlightOnclick}
+                                goHome={goHome}
+                                completedOrderDetails={completedOrderDetails}
+                                prices={PRICES}
+                                hasNewMessageFromParent={hasNewMessageFromParent}
+                                currentParentMessge={currentParentMessge}
+                                getBookedFlightDetailsOnly={getBookedFlightDetailsOnly}
+                            /> :
+                            <div>
+                                <p onClick={()=>{
+                                    window.location.href="/search";
+                                }}
+                                    style={{fontSize: 13, textDecoration: "underline", cursor: "pointer", margin: 20}}>
+                                    <i style={{marginRight: 10, color: "crimson"}} className='fa-solid fa-arrow-left'></i>
+                                    Exit
+                                </p>
+                                <div style={{padding: 20, marginTop: 20, backgroundColor: "black"}}>
+                                    <p style={{color: "white", fontSize: 13}}>
+                                        <i style={{marginRight: 10, color: "yellow"}}
+                                            className='fa-solid fa-exclamation-triangle'></i>
+                                        No booking details to show at the moment
+                                    </p>
+                                </div>  
+                            </div>
+                        }
+                    </> :
                     <>
                         <div style={{paddingTop: 10, borderBottom: "1px solid rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", justifyContent: "center"}}>
                             <p className="pop-up-close-btn" onClick={()=>{
@@ -601,7 +775,7 @@ export default function CheckoutPage(props){
                             </div>
                         </div>
                         {
-                            (activePage===CONSTANTS.checkout_pages.info) ?
+                            (activePage===CONSTANTS.checkout_pages.info && !getBookedFlightDetailsOnly) ?
                                 <CheckoutInfo
                                     bookingEngine={bookingEngine}
                                     cancel_checkout={props.cancel_checkout}
@@ -626,6 +800,8 @@ export default function CheckoutPage(props){
                                     setPaymentIntent={setPaymentIntent}
                                     bookingIntent={bookingIntent}
                                     setBookingIntent={setBookingIntent}
+                                    hasNewMessageFromParent={hasNewMessageFromParent}
+                                    currentParentMessge={currentParentMessge}
                                     INCLUDED_CHECKED_BAGS_EACH_PSNGR_QUANTITY={INCLUDED_CHECKED_BAGS_EACH_PSNGR_QUANTITY}
                                 /> : ""
                         }
@@ -640,6 +816,8 @@ export default function CheckoutPage(props){
                                     resetCheckoutConfirmation={resetCheckoutConfirmation}
                                     showPaymentPage={showPaymentPage}
                                     prices={PRICES}
+                                    hasNewMessageFromParent={hasNewMessageFromParent}
+                                    currentParentMessge={currentParentMessge}
                                 /> : ""
                         }
                         {
@@ -657,6 +835,8 @@ export default function CheckoutPage(props){
                                     startProcessingPayment={startProcessingPayment}
                                     startProcessingBookingOrderError={startProcessingBookingOrderError}
                                     setCheckoutConfirmation={setCheckoutConfirmation}
+                                    hasNewMessageFromParent={hasNewMessageFromParent}
+                                    currentParentMessge={currentParentMessge}
                                     prices={PRICES}
                                     options={options} // For stripe
                                     checkoutConfirmation={checkoutConfirmation}

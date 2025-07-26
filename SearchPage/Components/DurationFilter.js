@@ -11,7 +11,9 @@ const DurationFilter = (props) => {
         SLIDER_MIN_PERCENT,
         slideDurationFilter,
         durationSlider,
-        flightsSliderMaxDuration
+        flightsSliderMaxDuration,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
 
     useEffect(()=>{

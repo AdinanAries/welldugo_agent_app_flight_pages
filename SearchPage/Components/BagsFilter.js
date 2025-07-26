@@ -9,6 +9,8 @@ const BagsFilter = (props) => {
         maxCheckedBagsFilter,
         maxCarryOnBagsFilter,
         filterBags,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
 
     const increaseCheckedBags = () => {

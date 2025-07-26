@@ -5,7 +5,7 @@ import {
     add_commas_to_number
  } from "../../../helpers/general";
 import { markup } from "../../../helpers/Prices";
-import { getPriceMarkupPercentage } from "../../../services/flightsServices";
+import { fetchAgentPriceMarkupInfo } from "../../../services/agentServices";
 
 const SearchFilters = (props) => {
 
@@ -18,16 +18,85 @@ const SearchFilters = (props) => {
         filtersByAirlines, // global object to keep filter by airlines
         sortByHighestOrLowestPrice,
         priceHighLowSort,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
-
-    const [ PriceMarkupPercentage, setPriceMarkupPercentage ] = useState(0);
         
+    const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
+        type: "",
+        value: 0,
+    });
+    const [ canShowPrice, setCanShowPrice ] = useState({
+        profit_type: "",
+        with_price_bound_profit: false,
+        show: false,
+    });
+
     useEffect(()=>{
         (async()=>{
-            let price_markup = await getPriceMarkupPercentage();
-            setPriceMarkupPercentage(parseInt(price_markup));
+            let _pm_obj = {
+                type: "",
+                value: 0,
+            }
+            let _can_show_obj = {
+                profit_type: "",
+                with_price_bound_profit: false,
+                show: false,
+            }
+            setCanShowPrice(_can_show_obj);
+            setPriceMarkupValue(_pm_obj);
+            if(
+                hasNewMessageFromParent &&
+                currentParentMessge?.from_welldugo_oc &&
+                currentParentMessge?.type==="engine-parameters"
+            ){
+                if(currentParentMessge?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = currentParentMessge?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = currentParentMessge?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+                //currentParentMessge?.postBody?.current_price_bound_supplier: "duffel",
+            }else if(localStorage.getItem("engine_parameters")){
+                const engine_parameters = JSON.parse(localStorage.getItem("engine_parameters"));
+                if(engine_parameters?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = engine_parameters?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = engine_parameters?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                    console.log(engine_parameters);
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+            }else {
+                if(localStorage.getItem("agent")){
+                    const agent_id = localStorage.getItem("agent");
+                    if(agent_id || agent_id!=="undefined"){
+                        let _pm_res = await fetchAgentPriceMarkupInfo(agent_id);
+                        _pm_obj.type = _pm_res?.type;
+                        _pm_obj.value = _pm_res?.value;
+                        _can_show_obj.with_price_bound_profit = true;
+                        _can_show_obj.show = true;
+                    }
+                }
+            }
+
+            // Update State Here
+            setPriceMarkupValue({
+                type: _pm_obj?.type,
+                value: parseFloat(_pm_obj?.value),
+            });
+            setCanShowPrice({
+                ...canShowPrice,
+                with_price_bound_profit: _can_show_obj?.with_price_bound_profit,
+                show: _can_show_obj?.show,
+            });
         })();
-    }, []);
+    }, [currentParentMessge]);
 
     const filterByStops = (e, flights, key) => {
         if(e.target.checked){
@@ -67,9 +136,31 @@ const SearchFilters = (props) => {
                     </div>
                     <label htmlFor={"filter-by-stops_"+each.count}>
                         <p style={{fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontSize: 13}}>
-                            <span style={{fontSize: 15, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
-                                dangerouslySetInnerHTML={{__html: get_currency_symbol(each.currency)}}></span>
-                            {(add_commas_to_number((markup(each.lowest, PriceMarkupPercentage).new_price).toFixed(2)))}</p>
+                            {
+                                (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
+                                <span style={{fontSize: 15, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
+                                dangerouslySetInnerHTML={{__html: get_currency_symbol(each.currency)}}></span> : ""
+                            }
+                            { 
+                                canShowPrice?.show ?
+                                    <> 
+                                        {
+                                            !canShowPrice?.with_price_bound_profit ?
+                                            add_commas_to_number(parseFloat(each.lowest)?.toFixed(2)) :
+                                            <>
+                                                {
+                                                    PriceMarkupValue?.value ?
+                                                    (add_commas_to_number((markup(each.lowest, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2)))
+                                                    : "N/A"
+                                                }
+                                            </>
+                                        }
+                                    </>
+                                : <span style={{color: "rgba(0,0,0,0.8)"}}>
+                                    <i className="fa-solid fa-filter-circle-dollar"></i>
+                                </span>
+                            }
+                        </p>
                     </label>
                 </div>
             );
@@ -87,9 +178,31 @@ const SearchFilters = (props) => {
                     </div>
                     <label htmlFor={"filter-by-stops_"+each.count}>
                         <p style={{fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontSize: 13}}>
-                            <span style={{fontSize: 15, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
-                                dangerouslySetInnerHTML={{__html: get_currency_symbol(each.currency)}}></span>
-                            {(add_commas_to_number((markup(each.lowest, PriceMarkupPercentage).new_price).toFixed(2)))}</p>
+                            {
+                                (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
+                                <span style={{fontSize: 15, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
+                                dangerouslySetInnerHTML={{__html: get_currency_symbol(each.currency)}}></span> : ""
+                            }
+                            { 
+                                canShowPrice?.show ?
+                                    <> 
+                                        {
+                                            !canShowPrice?.with_price_bound_profit ?
+                                            add_commas_to_number(parseFloat(each.lowest)?.toFixed(2)) :
+                                            <>
+                                                {
+                                                    PriceMarkupValue?.value ?
+                                                    (add_commas_to_number((markup(each.lowest, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2)))
+                                                    : "N/A"
+                                                }
+                                            </>
+                                        }
+                                    </>
+                                : <span style={{color: "rgba(0,0,0,0.8)"}}>
+                                    <i className="fa-solid fa-filter-circle-dollar"></i>
+                                </span>
+                            }
+                        </p>
                     </label>
                 </div>
             );
@@ -118,9 +231,31 @@ const SearchFilters = (props) => {
                 </div>
                 <label htmlFor={"filter-by-flights_"+each.airlineCode}>
                     <p style={{fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontSize: 13}}>
-                        <span style={{fontSize: 15, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
-                            dangerouslySetInnerHTML={{__html: get_currency_symbol(each.currency)}}></span>
-                            {(add_commas_to_number((markup(each.lowest, PriceMarkupPercentage).new_price).toFixed(2)))}</p>
+                        {
+                            (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
+                            <span style={{fontSize: 15, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
+                            dangerouslySetInnerHTML={{__html: get_currency_symbol(each.currency)}}></span> : ""
+                        }
+                        { 
+                            canShowPrice?.show ?
+                                <> 
+                                    {
+                                        !canShowPrice?.with_price_bound_profit ?
+                                        add_commas_to_number(parseFloat(each.lowest)?.toFixed(2)) :
+                                        <>
+                                            {
+                                                PriceMarkupValue?.value ?
+                                                (add_commas_to_number((markup(each.lowest, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2)))
+                                                : "N/A"
+                                            }
+                                        </>
+                                    }
+                                </>
+                            : <span style={{color: "rgba(0,0,0,0.8)"}}>
+                                <i className="fa-solid fa-filter-circle-dollar"></i>
+                            </span>
+                        }
+                    </p>
                 </label>
             </div>
         );

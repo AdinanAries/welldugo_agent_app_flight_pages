@@ -17,7 +17,7 @@ import {
     get_currency_symbol,
     add_commas_to_number,
 } from "../../../helpers/general";
-import { getPriceMarkupPercentage } from "../../../services/flightsServices";
+import { fetchAgentPriceMarkupInfo } from "../../../services/agentServices";
 import { 
     duffelStopsAndPrices, 
     duffelAirlinesAndPrices, 
@@ -46,20 +46,89 @@ else {
 }
 export default function ResultsListContainer(props){
 
-    const [ PriceMarkupPercentage, setPriceMarkupPercentage ] = useState(0);
-    
-    useEffect(()=>{
-        (async()=>{
-            let price_markup = await getPriceMarkupPercentage();
-            setPriceMarkupPercentage(parseInt(price_markup));
-        })();
-    }, []);
-
     const { 
         SEARCH_OBJ,
         bookingEngine,
         agentDetails,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
+    
+    const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
+        type: "",
+        value: 0,
+    });
+    const [ canShowPrice, setCanShowPrice ] = useState({
+        profit_type: "",
+        with_price_bound_profit: false,
+        show: false,
+    });
+
+    useEffect(()=>{
+        (async()=>{
+            let _pm_obj = {
+                type: "",
+                value: 0,
+            }
+            let _can_show_obj = {
+                profit_type: "",
+                with_price_bound_profit: false,
+                show: false,
+            }
+            setCanShowPrice(_can_show_obj);
+            setPriceMarkupValue(_pm_obj);
+            if(
+                hasNewMessageFromParent &&
+                currentParentMessge?.from_welldugo_oc &&
+                currentParentMessge?.type==="engine-parameters"
+            ){
+                if(currentParentMessge?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = currentParentMessge?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = currentParentMessge?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+                //currentParentMessge?.postBody?.current_price_bound_supplier: "duffel",
+            }else if(localStorage.getItem("engine_parameters")){
+                const engine_parameters = JSON.parse(localStorage.getItem("engine_parameters"));
+                if(engine_parameters?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = engine_parameters?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = engine_parameters?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                    console.log(engine_parameters);
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+            }else {
+                if(localStorage.getItem("agent")){
+                    const agent_id = localStorage.getItem("agent");
+                    if(agent_id || agent_id!=="undefined"){
+                        let _pm_res = await fetchAgentPriceMarkupInfo(agent_id);
+                        _pm_obj.type = _pm_res?.type;
+                        _pm_obj.value = _pm_res?.value;
+                        _can_show_obj.with_price_bound_profit = true;
+                        _can_show_obj.show = true;
+                    }
+                }
+            }
+
+            // Update State Here
+            setPriceMarkupValue({
+                type: _pm_obj?.type,
+                value: parseFloat(_pm_obj?.value),
+            });
+            setCanShowPrice({
+                ...canShowPrice,
+                with_price_bound_profit: _can_show_obj?.with_price_bound_profit,
+                show: _can_show_obj?.show,
+            });
+        })();
+    }, [currentParentMessge]);
     
     const [ filteredFlights, setFilteredFlights ] = useState([]);
     const [ priceSlider, setPriceSlider ] = useState(101);
@@ -83,6 +152,7 @@ export default function ResultsListContainer(props){
     const [ maxCarryOnBagsFilter, setMaxCarryOnBagsFilter ] = useState(0);
     const [ priceHighLowSort, setPriceHighLowSort] = useState(SORT); // [0 => Lowest, 1 => Highest]
 
+    const CURRENCY_SYMBOL = get_currency_symbol("usd");
 
     const hidePricesGrid = () => {
         setIsShowPriceGrid(false);
@@ -329,6 +399,8 @@ export default function ResultsListContainer(props){
                 key={index} 
                 index={index}
                 flight={each}
+                hasNewMessageFromParent={hasNewMessageFromParent}
+                currentParentMessge={currentParentMessge}
             />);
     }else if(Array.isArray(filteredFlights) && filteredFlights.length>0){
 
@@ -339,6 +411,8 @@ export default function ResultsListContainer(props){
                 key={index} 
                 index={index}
                 flight={each}
+                hasNewMessageFromParent={hasNewMessageFromParent}
+                currentParentMessge={currentParentMessge}
             />);
     }else{
         FLIGHTS = <div style={{padding: "10px", maxWidth: 250, margin: "auto", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center"}}>
@@ -385,6 +459,8 @@ export default function ResultsListContainer(props){
                                 filterFlights={filterFlights}
                                 filtersByStops={filtersByStops}
                                 filtersByAirlines={filtersByAirlines}
+                                hasNewMessageFromParent={hasNewMessageFromParent}
+                                currentParentMessge={currentParentMessge}
                             /> :
                             <SearchFiltersLoader />
                     }
@@ -446,13 +522,82 @@ export default function ResultsListContainer(props){
                                                 <div>
                                                     <div style={{display: "flex", justifyContent: "space-between"}}>
                                                         <p style={{color: "rgba(0,0,0,0.8)", fontSize: 10, fontFamily: "'Prompt', Sans-serif"}}>
-                                                            ${(add_commas_to_number((markup(flightsMinPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
+                                                            {
+                                                                (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
+                                                                <span style={{fontSize: 18, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontWeight: "bolder"}} 
+                                                                dangerouslySetInnerHTML={{__html: CURRENCY_SYMBOL}}></span> : ""
+                                                            }
+                                                            { 
+                                                                canShowPrice?.show ?
+                                                                    <> 
+                                                                        {
+                                                                            !canShowPrice?.with_price_bound_profit ?
+                                                                            add_commas_to_number(parseFloat(flightsMinPrice)?.toFixed(0)) :
+                                                                            <>
+                                                                                {
+                                                                                    PriceMarkupValue?.value ?
+                                                                                    (add_commas_to_number((markup(flightsMinPrice, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(0)))
+                                                                                    : "N/A"
+                                                                                }
+                                                                            </>
+                                                                        }
+                                                                    </>
+                                                                : <span style={{color: "rgba(0,0,0,0.8)"}}>
+                                                                    <i className="fa-solid fa-filter-circle-dollar"></i>
+                                                                </span>
+                                                            }
                                                         </p>
                                                         <p style={{color: "crimson", fontSize: 10, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>
-                                                            ${(add_commas_to_number((markup(flightsSliderMaxPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
+                                                            {
+                                                                (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
+                                                                <span style={{fontSize: 18, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontWeight: "bolder"}} 
+                                                                dangerouslySetInnerHTML={{__html: CURRENCY_SYMBOL}}></span> : ""
+                                                            }
+                                                            { 
+                                                                canShowPrice?.show ?
+                                                                    <> 
+                                                                        {
+                                                                            !canShowPrice?.with_price_bound_profit ?
+                                                                            add_commas_to_number(parseFloat(flightsSliderMaxPrice)?.toFixed(0)) :
+                                                                            <>
+                                                                                {
+                                                                                    PriceMarkupValue?.value ?
+                                                                                    (add_commas_to_number((markup(flightsSliderMaxPrice, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(0)))
+                                                                                    : "N/A"
+                                                                                }
+                                                                            </>
+                                                                        }
+                                                                    </>
+                                                                : <span style={{color: "rgba(0,0,0,0.8)"}}>
+                                                                    <i className="fa-solid fa-filter-circle-dollar"></i>
+                                                                </span>
+                                                            }
                                                         </p>
                                                         <p style={{color: "rgba(0,0,0,0.8)", fontSize: 10, fontFamily: "'Prompt', Sans-serif"}}>
-                                                            ${(add_commas_to_number((markup(flightsMaxPrice, PriceMarkupPercentage).new_price.toFixed(0))))}
+                                                            {
+                                                                (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
+                                                                <span style={{fontSize: 18, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontWeight: "bolder"}} 
+                                                                dangerouslySetInnerHTML={{__html: CURRENCY_SYMBOL}}></span> : ""
+                                                            }
+                                                            { 
+                                                                canShowPrice?.show ?
+                                                                    <> 
+                                                                        {
+                                                                            !canShowPrice?.with_price_bound_profit ?
+                                                                            add_commas_to_number(parseFloat(flightsMaxPrice)?.toFixed(0)) :
+                                                                            <>
+                                                                                {
+                                                                                    PriceMarkupValue?.value ?
+                                                                                    (add_commas_to_number((markup(flightsMaxPrice, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(0)))
+                                                                                    : "N/A"
+                                                                                }
+                                                                            </>
+                                                                        }
+                                                                    </>
+                                                                : <span style={{color: "rgba(0,0,0,0.8)"}}>
+                                                                    <i className="fa-solid fa-filter-circle-dollar"></i>
+                                                                </span>
+                                                            }
                                                         </p>
                                                     </div>
                                                     <input 
@@ -470,6 +615,8 @@ export default function ResultsListContainer(props){
                                                                 filtersByTimes={filtersByTimes}
                                                                 filterFlights={filterFlights}
                                                                 hideTimesFilter={hideTimesFilter}
+                                                                hasNewMessageFromParent={hasNewMessageFromParent}
+                                                                currentParentMessge={currentParentMessge}
                                                             />
                                                         }
                                                         <div onClick={showTimesFilter}
@@ -501,6 +648,8 @@ export default function ResultsListContainer(props){
                                                                 maxCheckedBagsFilter={maxCheckedBagsFilter}
                                                                 maxCarryOnBagsFilter={maxCarryOnBagsFilter}
                                                                 filterBags={filterBags}
+                                                                hasNewMessageFromParent={hasNewMessageFromParent}
+                                                                currentParentMessge={currentParentMessge}
                                                             />
                                                         }
                                                         <div onClick={showBagsFilter}
@@ -530,6 +679,8 @@ export default function ResultsListContainer(props){
                                                                 durationSlider={durationSlider}
                                                                 flightsSliderMaxDuration={flightsSliderMaxDuration}
                                                                 hideDurationFilter={hideDurationFilter} 
+                                                                hasNewMessageFromParent={hasNewMessageFromParent}
+                                                                currentParentMessge={currentParentMessge}
                                                             />
                                                         }
                                                         <div onClick={showDurationFilter}

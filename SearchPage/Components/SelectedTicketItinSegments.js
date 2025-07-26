@@ -8,7 +8,10 @@ import {
 import { segs } from "../../../test_objects/duffel_segment";
 
 const SelectedTicketItinSegments = (props) => {
-    const { segments, element_id } = props;
+    const { 
+        segments, 
+        element_id,
+    } = props;
 
     // Reset for showing toggling to show or hide segments
     global.is_itinerary_showing=false;

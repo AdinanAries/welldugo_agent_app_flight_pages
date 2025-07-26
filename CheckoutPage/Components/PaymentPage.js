@@ -30,6 +30,8 @@ const PaymentPage = (props) => {
         showPNRPage,
         loadingStages,
         bookingEngine,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
     
     return (
@@ -62,6 +64,8 @@ const PaymentPage = (props) => {
                                         setCheckoutConfirmation={setCheckoutConfirmation}
                                         checkoutPayload={checkoutPayload}
                                         loadingStages={loadingStages}
+                                        hasNewMessageFromParent={hasNewMessageFromParent}
+                                        currentParentMessge={currentParentMessge}
                                     />
                                 </Elements>
                             </div>
@@ -145,6 +149,8 @@ const PaymentPage = (props) => {
                         buttonText="" 
                         isPaymentPage={true} 
                         total_travelers={total_travelers}
+                        hasNewMessageFromParent={hasNewMessageFromParent}
+                        currentParentMessge={currentParentMessge}
                     />
                 </div>
             </div>

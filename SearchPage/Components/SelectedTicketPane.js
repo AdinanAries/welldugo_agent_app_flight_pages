@@ -8,7 +8,9 @@ export default function SelectedTicketPane(props){
 
     const { 
         selectedFlightId,
-        bookingEngine
+        bookingEngine,
+        hasNewMessageFromParent,
+        currentParentMessge
     } = props;
     const [ flightDetail, setFlightDetail ] = useState(null);
     const [isError, setIsError] = useState(false);
@@ -44,6 +46,8 @@ export default function SelectedTicketPane(props){
                             flight={flightDetail}
                             unselectFlightOffer={unselectFlightOffer} 
                             begin_checkout={props.begin_checkout} 
+                            hasNewMessageFromParent={hasNewMessageFromParent}
+                            currentParentMessge={currentParentMessge}
                         /> : 
                         <div style={{padding: "40px 10px", height: "calc(100% + 90px)", backgroundColor: "white", display: "flex", alignItems: "center"}}>
                             <div style={{width: "calc(100% - 20px)"}}>

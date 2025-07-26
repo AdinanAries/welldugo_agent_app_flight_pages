@@ -6,7 +6,9 @@ import DuffelOfferItem from "./FlightOfferCards.js/DuffelOfferItem";
 
 const FlightOfferItem = (props) => {
     const {
-        bookingEngine
+        bookingEngine,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
     if(CONSTANTS.duffel===ENVIRONMENT.data_provider) {
         return <DuffelOfferItem
@@ -14,6 +16,8 @@ const FlightOfferItem = (props) => {
             selectFlightOffer={props.selectFlightOffer}
             flight={props.flight} 
             index={props.index}
+            hasNewMessageFromParent={hasNewMessageFromParent}
+            currentParentMessge={currentParentMessge}
         />
     } else {
         return <div>

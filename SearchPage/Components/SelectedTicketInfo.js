@@ -11,22 +11,91 @@ import { getTotalBags } from "../../../helpers/FlightsFilterHelpers";
 import { useState, useEffect } from "react";
 
 import SelectedTicketItinSegments from "./SelectedTicketItinSegments";
-import { getPriceMarkupPercentage } from "../../../services/flightsServices";
+import { fetchAgentPriceMarkupInfo } from "../../../services/agentServices";
 
 const SelectedTicketInfo = (props) => {
 
-    const [ PriceMarkupPercentage, setPriceMarkupPercentage ] = useState(0);
-    
-        useEffect(()=>{
-            (async()=>{
-                let perc = await getPriceMarkupPercentage();
-                setPriceMarkupPercentage(parseInt(perc));
-            })();
-        },[]);
-
     const {
         bookingEngine,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
+
+    const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
+        type: "",
+        value: 0,
+    });
+    const [ canShowPrice, setCanShowPrice ] = useState({
+        profit_type: "",
+        with_price_bound_profit: false,
+        show: false,
+    });
+
+    useEffect(()=>{
+        (async()=>{
+            let _pm_obj = {
+                type: "",
+                value: 0,
+            }
+            let _can_show_obj = {
+                profit_type: "",
+                with_price_bound_profit: false,
+                show: false,
+            }
+            setCanShowPrice(_can_show_obj);
+            setPriceMarkupValue(_pm_obj);
+            if(
+                hasNewMessageFromParent &&
+                currentParentMessge?.from_welldugo_oc &&
+                currentParentMessge?.type==="engine-parameters"
+            ){
+                if(currentParentMessge?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = currentParentMessge?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = currentParentMessge?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+                //currentParentMessge?.postBody?.current_price_bound_supplier: "duffel",
+            }else if(localStorage.getItem("engine_parameters")){
+                const engine_parameters = JSON.parse(localStorage.getItem("engine_parameters"));
+                if(engine_parameters?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = engine_parameters?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = engine_parameters?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                    console.log(engine_parameters);
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+            }else {
+                if(localStorage.getItem("agent")){
+                    const agent_id = localStorage.getItem("agent");
+                    if(agent_id || agent_id!=="undefined"){
+                        let _pm_res = await fetchAgentPriceMarkupInfo(agent_id);
+                        _pm_obj.type = _pm_res?.type;
+                        _pm_obj.value = _pm_res?.value;
+                        _can_show_obj.with_price_bound_profit = true;
+                        _can_show_obj.show = true;
+                    }
+                }
+            }
+
+            // Update State Here
+            setPriceMarkupValue({
+                type: _pm_obj?.type,
+                value: parseFloat(_pm_obj?.value),
+            });
+            setCanShowPrice({
+                ...canShowPrice,
+                with_price_bound_profit: _can_show_obj?.with_price_bound_profit,
+                show: _can_show_obj?.show,
+            });
+        })();
+    }, [currentParentMessge]);
 
     const { data } = props?.flight;
     const { total_amount, total_currency, 
@@ -311,13 +380,25 @@ const SelectedTicketInfo = (props) => {
                 <div style={{padding: 10}}>
                     <p style={{fontSize: 22, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontWeight: "bolder"}}>
                         {
-                            PriceMarkupPercentage ?
-                            <span style={{fontSize: 22, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontWeight: "bolder"}} 
+                            (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
+                            <span style={{fontSize: 18, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontWeight: "bolder"}} 
                             dangerouslySetInnerHTML={{__html: CURRENCY_SYMBOL}}></span> : ""
                         }
-                        {   
-                            PriceMarkupPercentage ?
-                            (add_commas_to_number((markup(total_amount, PriceMarkupPercentage)?.new_price)?.toFixed(2)))
+                        { 
+                            canShowPrice?.show ?
+                                <> 
+                                    {
+                                        !canShowPrice?.with_price_bound_profit ?
+                                        add_commas_to_number(parseFloat(total_amount)?.toFixed(2)) :
+                                        <>
+                                            {
+                                                PriceMarkupValue?.value ?
+                                                (add_commas_to_number((markup(total_amount, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2)))
+                                                : "N/A"
+                                            }
+                                        </>
+                                    }
+                                </>
                             : <span style={{color: "rgba(0,0,0,0.8)"}}>
                                 <i className="fa-solid fa-filter-circle-dollar"></i>
                             </span>

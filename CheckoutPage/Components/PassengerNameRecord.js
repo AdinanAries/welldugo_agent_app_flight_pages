@@ -30,6 +30,8 @@ const PassengerNameRecord = (props) => {
         resetCheckoutConfirmation, 
         showInfoPage,
         bookingEngine,
+        hasNewMessageFromParent,
+        currentParentMessge,
     } = props;
 
     useEffect(()=> {
@@ -103,6 +105,8 @@ const PassengerNameRecord = (props) => {
                                         allInfantsPassengers={allInfantsPassengers}
                                         selectPassengerCard={selectPassengerCard} 
                                         passenger={each} 
+                                        hasNewMessageFromParent={hasNewMessageFromParent}
+                                        currentParentMessge={currentParentMessge}
                                     />
                                 })
                             }
@@ -118,6 +122,8 @@ const PassengerNameRecord = (props) => {
                         backButtonFunction={showInfoPage}
                         buttonText="Payment"
                         total_travelers={passengers.length}
+                        hasNewMessageFromParent={hasNewMessageFromParent}
+                        currentParentMessge={currentParentMessge}
                     />
                 </div>
             </div>

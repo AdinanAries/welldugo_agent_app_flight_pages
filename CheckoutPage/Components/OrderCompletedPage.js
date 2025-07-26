@@ -17,18 +17,9 @@ import { updateFlightBookingLogId } from "../../../services/bookingHistoryServic
 import BotLogin from "../../../Bot-Login.jpg";
 import BotLogin2 from "../../../Bot-Login-2.jpg";
 import BotLogin3 from "../../../Bot-Login-3.jpg";
-import { getPriceMarkupPercentage } from "../../../services/flightsServices";
+import { fetchAgentPriceMarkupInfo } from "../../../services/agentServices";
 
 const OrderCompletedPage = (props) => {
-
-    const [ PriceMarkupPercentage, setPriceMarkupPercentage ] = useState(0);
-
-    useEffect(()=>{
-        (async()=>{
-            let perc = await getPriceMarkupPercentage();
-            setPriceMarkupPercentage(parseInt(perc));
-        })();
-    }, []);
 
     const { 
         pickAnotherFlightOnclick,
@@ -36,8 +27,87 @@ const OrderCompletedPage = (props) => {
         completedOrderDetails,
         prices,
         LogMeIn,
-        bookingID
+        bookingID,
+        hasNewMessageFromParent,
+        currentParentMessge,
+        getBookedFlightDetailsOnly
     } = props;
+
+    const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
+        type: "",
+        value: 0,
+    });
+    const [ canShowPrice, setCanShowPrice ] = useState({
+        profit_type: "",
+        with_price_bound_profit: false,
+        show: false,
+    });
+            
+    useEffect(()=>{
+        (async()=>{
+            let _pm_obj = {
+                type: "",
+                value: 0,
+            }
+            let _can_show_obj = {
+                profit_type: "",
+                with_price_bound_profit: false,
+                show: false,
+            }
+            setCanShowPrice(_can_show_obj);
+            setPriceMarkupValue(_pm_obj);
+            if(
+                hasNewMessageFromParent &&
+                currentParentMessge?.from_welldugo_oc &&
+                currentParentMessge?.type==="engine-parameters"
+            ){
+                if(currentParentMessge?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = currentParentMessge?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = currentParentMessge?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+                //currentParentMessge?.postBody?.current_price_bound_supplier: "duffel",
+            }else if(localStorage.getItem("engine_parameters")){
+                const engine_parameters = JSON.parse(localStorage.getItem("engine_parameters"));
+                if(engine_parameters?.postBody?.apply_price_bound_profile){
+                    _pm_obj.type = engine_parameters?.postBody?.current_price_bound_profit_type;
+                    _pm_obj.value = engine_parameters?.postBody?.current_price_bound_profit_value;
+                    _can_show_obj.with_price_bound_profit = true;
+                    _can_show_obj.show = true;
+                    console.log(engine_parameters);
+                }else{
+                    _can_show_obj.with_price_bound_profit = false;
+                    _can_show_obj.show = true;
+                }
+            }else {
+                if(localStorage.getItem("agent")){
+                    const agent_id = localStorage.getItem("agent");
+                    if(agent_id || agent_id!=="undefined"){
+                        let _pm_res = await fetchAgentPriceMarkupInfo(agent_id);
+                        _pm_obj.type = _pm_res?.type;
+                        _pm_obj.value = _pm_res?.value;
+                        _can_show_obj.with_price_bound_profit = true;
+                        _can_show_obj.show = true;
+                    }
+                }
+            }
+
+            // Update State Here
+            setPriceMarkupValue({
+                type: _pm_obj?.type,
+                value: parseFloat(_pm_obj?.value),
+            });
+            setCanShowPrice({
+                ...canShowPrice,
+                with_price_bound_profit: _can_show_obj?.with_price_bound_profit,
+                show: _can_show_obj?.show,
+            });
+        })();
+    }, [currentParentMessge]);
 
     // Use this flag to remind user to login so booking can be saved to their account
     const [isLoggedIn, setIsLoggedIn ] = useState(false); 
@@ -72,21 +142,27 @@ const OrderCompletedPage = (props) => {
                 setIsLoggedIn(false);
 
                 const BOT_IMGs = [BotLogin, BotLogin3, BotLogin2]
-                show_prompt_on_Bot_AD_tips_popup(
-                    getBotResponse(CONSTANTS.bot.responses.not_logged_in_on_checkout_complete),
-                    CONSTANTS.bot.prompt_types.prompt, 
-                    500000,
-                    {
-                        image: true,
-                        data: {
-                            img_url: BOT_IMGs[Math.floor(Math.random() * BOT_IMGs.length)],
-                            icon_class: "fa-solid fa-sign-in-alt",
-                            text: "Login to save the booking...",
+                if(!getBookedFlightDetailsOnly){
+                    show_prompt_on_Bot_AD_tips_popup(
+                        getBotResponse(CONSTANTS.bot.responses.not_logged_in_on_checkout_complete),
+                        CONSTANTS.bot.prompt_types.prompt, 
+                        500000,
+                        {
+                            image: true,
+                            data: {
+                                img_url: BOT_IMGs[Math.floor(Math.random() * BOT_IMGs.length)],
+                                icon_class: "fa-solid fa-sign-in-alt",
+                                text: "Login to save the booking...",
+                            }
                         }
-                    }
-                );
+                    );
+                }
             }
             setIsLoading(false);
+            if(getBookedFlightDetailsOnly){
+                setShowBookingDetails(true);
+                setIsLoggedIn(true);
+            }
         })()
     }, []);
 
@@ -218,10 +294,14 @@ const OrderCompletedPage = (props) => {
                 <i style={{marginRight: 10}} className="fa-solid fa-route"></i>
                 {slice.origin.city_name} to {slice.destination.city_name}
                 <span style={{color: "brown", textDecoration: "underline", fontSize: 14, fontFamily: "'Prompt', Sans-serif", marginLeft: 10}}>
-                    show route</span>
+                    hide/show route</span>
             </span>
-            <div style={{paddingLeft: 20, paddingTop: 5, paddingBottom: 5, backgroundColor: "rgba(0,0,0,0.1)"}}>
-                <SelectedTicketItinSegments element_id={(index+"_completed_order_details_itinerary_details")} segments={slice.segments}/>
+            <div style={{paddingLeft: 20, paddingTop: 5, paddingBottom: 5}}>
+                <SelectedTicketItinSegments 
+                    element_id={(index+"_completed_order_details_itinerary_details")} 
+                    segments={slice.segments}
+                    display="block"
+                />
             </div>
         </div>);
 
@@ -349,7 +429,7 @@ const OrderCompletedPage = (props) => {
                         Refund allowed with penalty amount of 
                         <span style={{marginLeft: 5, fontFamily: "'Prompt', Sans-serif", fontSize: 13}} 
                             dangerouslySetInnerHTML={{__html: CURRENCY_SYMBOL}}></span>
-                            {(add_commas_to_number((markup(completedOrderDetails?.conditions?.refund_before_departure?.penalty_amount, PriceMarkupPercentage).new_price).toFixed(2)))}
+                            {(add_commas_to_number((markup(completedOrderDetails?.conditions?.refund_before_departure?.penalty_amount, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price).toFixed(2)))}
                     </p>
                 </div>
             </div>
@@ -383,7 +463,7 @@ const OrderCompletedPage = (props) => {
                         Changes allowed with penalty amount of
                         <span style={{marginLeft: 5, fontFamily: "'Prompt', Sans-serif", fontSize: 13}} 
                             dangerouslySetInnerHTML={{__html: CURRENCY_SYMBOL}}></span>
-                            {(add_commas_to_number((markup(completedOrderDetails?.conditions?.change_before_departure?.penalty_amount, PriceMarkupPercentage).new_price).toFixed(2)))}
+                            {(add_commas_to_number((markup(completedOrderDetails?.conditions?.change_before_departure?.penalty_amount, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price).toFixed(2)))}
                     </p>
                 </div>
             </div>
@@ -415,7 +495,7 @@ const OrderCompletedPage = (props) => {
                     {each.name} ({each.quantity}):
                     <span style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", marginLeft: 5}} 
                             dangerouslySetInnerHTML={{__html: get_currency_symbol(prices.base_currency)}}></span>
-                    {(add_commas_to_number((markup(each.total, PriceMarkupPercentage).new_price).toFixed(2)))}
+                    {(add_commas_to_number((markup(each.total, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price).toFixed(2)))}
                 </p>
             </div>
         );
@@ -425,10 +505,13 @@ const OrderCompletedPage = (props) => {
         <div style={{position: "relative"}}>
             <div style={{padding: "20px 0"}}>
                 <div style={{padding: "0 10px"}}>
-                    <p className="pop-up-close-btn" onClick={pickAnotherFlightOnclick} 
-                        style={{cursor: "pointer", zIndex: 1, color: "rgb(255,0,0)", fontSize: 33, position: "absolute", right: 10, top: 10}}>
-                        &times;
-                    </p>
+                    {
+                        !getBookedFlightDetailsOnly &&
+                        <p className="pop-up-close-btn" onClick={pickAnotherFlightOnclick} 
+                            style={{cursor: "pointer", zIndex: 1, color: "rgb(255,0,0)", fontSize: 33, position: "absolute", right: 10, top: 10}}>
+                            &times;
+                        </p>
+                    }
                     <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 14, fontWeight: "bolder"}}>
                         <i style={{marginRight: 10, color: "orange"}} className="fa-solid fa-ticket"></i>
                         Reference Number:
@@ -518,25 +601,30 @@ const OrderCompletedPage = (props) => {
                         </div>
                     </div> :
                     (showBookingDetails && !isLoading) && <div>
-                        <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 14, margin: 10}}>
-                            <i style={{marginRight: 10, color: "green"}} className="fa-solid fa-check"></i>
-                            Your booking has been confirmed!
-                            <span style={{fontFamily: "'Prompt', Sans-serif", marginLeft: 5, color: "rgba(0,0,0,0.7)", fontSize: 14}}>
-                                What's next?
-                            </span>
-                        </p>
-                        <div style={{padding: 10}}>
-                            <div style={{display: "flex"}}>
-                                <div onClick={pickAnotherFlightOnclick} style={{textAlign: "center", cursor: "pointer", marginRight: 5, padding: 10, color: "white", backgroundColor: "darkslateblue", fontSize: 14, fontFamily: "'Prompt', Sans-serif", borderRadius: 7}}>
-                                    <i style={{marginRight: 10, color: "lightblue"}} className="fa-solid fa-plane-departure"></i>
-                                    book another flight
+                        {
+                            !getBookedFlightDetailsOnly &&
+                            <>
+                                <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 14, margin: 10}}>
+                                    <i style={{marginRight: 10, color: "green"}} className="fa-solid fa-check"></i>
+                                    Your booking has been confirmed!
+                                    <span style={{fontFamily: "'Prompt', Sans-serif", marginLeft: 5, color: "rgba(0,0,0,0.7)", fontSize: 14}}>
+                                        What's next?
+                                    </span>
+                                </p>
+                                <div style={{padding: 10}}>
+                                    <div style={{display: "flex"}}>
+                                        <div onClick={pickAnotherFlightOnclick} style={{textAlign: "center", cursor: "pointer", marginRight: 5, padding: 10, color: "white", backgroundColor: "darkslateblue", fontSize: 14, fontFamily: "'Prompt', Sans-serif", borderRadius: 7}}>
+                                            <i style={{marginRight: 10, color: "lightblue"}} className="fa-solid fa-plane-departure"></i>
+                                            book another flight
+                                        </div>
+                                        <div onClick={goHome} style={{textAlign: "center", cursor: "pointer", padding: 10, color: "white", backgroundColor: "crimson", fontSize: 14, fontFamily: "'Prompt', Sans-serif", borderRadius: 7}}>
+                                            <i style={{marginRight: 10, color: "yellow"}} className="fa-solid fa-home"></i>
+                                            go home
+                                        </div>
+                                    </div>
                                 </div>
-                                <div onClick={goHome} style={{textAlign: "center", cursor: "pointer", padding: 10, color: "white", backgroundColor: "crimson", fontSize: 14, fontFamily: "'Prompt', Sans-serif", borderRadius: 7}}>
-                                    <i style={{marginRight: 10, color: "yellow"}} className="fa-solid fa-home"></i>
-                                    go home
-                                </div>
-                            </div>
-                        </div>
+                            </>
+                        }
                         <div>
                             {
                                 !isLoggedIn && <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 13, backgroundColor: "rgba(255,0,0,0.2)", border: "1px solid rgba(255,0,0,0.2)", borderRadius: 4, padding: "5px 10px", margin: "0 10px"}}>
@@ -573,7 +661,7 @@ const OrderCompletedPage = (props) => {
                                 </div>
                                 <h1 style={{fontFamily: "'Prompt', Sans-serif", fontSize: 14, marginBottom: 10, marginTop: 25}}>
                                     Flights</h1>
-                                <div>
+                                <div style={{border: "1px dashed rgba(0,0,0,0.2)", padding: 10}}>
                                     {SEGMENTS.map(each=>each)}
                                 </div>
                                 <h1 style={{fontFamily: "'Prompt', Sans-serif", fontSize: 14, marginBottom: 10, marginTop: 15}}>
@@ -613,16 +701,16 @@ const OrderCompletedPage = (props) => {
                                     <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 13}}>
                                         Base Amount: <span style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
                                             dangerouslySetInnerHTML={{__html: get_currency_symbol(prices.base_currency)}}></span>
-                                            {(add_commas_to_number((markup(prices.base_amount, PriceMarkupPercentage).new_price).toFixed(2)))}</p>
+                                            {(add_commas_to_number((markup(prices.base_amount, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price).toFixed(2)))}</p>
                                     <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 13}}>
                                         Tax Amount: <span style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
                                             dangerouslySetInnerHTML={{__html: get_currency_symbol(prices.tax_currency)}}></span>
-                                            {(add_commas_to_number((markup(prices.tax_amount, PriceMarkupPercentage).new_price).toFixed(2)))}</p>
+                                            {(add_commas_to_number((markup(prices.tax_amount, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price).toFixed(2)))}</p>
                                     {EXTRAS_MARKUP.map(each=>each)}
                                     <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 14, fontWeight: "bolder"}}>
                                         Total Paid: <span style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
                                             dangerouslySetInnerHTML={{__html: get_currency_symbol(prices.total_currency)}}></span>
-                                        {(add_commas_to_number((markup(overallTotal, PriceMarkupPercentage).new_price).toFixed(2)))}</p>
+                                        {(add_commas_to_number((markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price).toFixed(2)))}</p>
                                 </div>
                                 <h1 style={{display: "none", fontFamily: "'Prompt', Sans-serif", fontSize: 14, marginBottom: 10, marginTop: 25}}>
                                     Weather</h1>
