@@ -275,13 +275,13 @@ const OrderCompletedPage = (props) => {
     const _date_time=(
         completedOrderDetails?.slices
         && completedOrderDetails?.slices[0]?.segments
-        && completedOrderDetails?.slices[0]?.segments[0]?.departure_datetime
+        && completedOrderDetails?.slices[0]?.segments[0]?.departing_at
     )
     const FLIGHT_DATE=(get_short_date_DAYMMMDD((_date_time || "")));
     const _time=(
         completedOrderDetails?.slices
         && completedOrderDetails?.slices[0]?.segments
-        && completedOrderDetails?.slices[0]?.segments[0]?.departure_datetime.split("T")[1]
+        && completedOrderDetails?.slices[0]?.segments[0]?.departing_at?.split("T")[1]
     );
     const TAKE_OFF_TIME=convert24HTimeToAMPM((_time || ""));
 
@@ -347,13 +347,13 @@ const OrderCompletedPage = (props) => {
                                 {segment.destination.name}
                             </p>
                             <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 13, color: "rgba(0,0,0,0.7)"}}>
-                                {get_short_date_DAYMMMDD(segment.departure_datetime) + " ("}
-                                {convert24HTimeToAMPM(segment.departure_datetime.split("T")[1]) + ")"}
+                                {get_short_date_DAYMMMDD(segment?.departing_at) + " ("}
+                                {convert24HTimeToAMPM(segment?.departing_at.split("T")[1]) + ")"}
                                 <span style={{margin: "0 10px", fontFamily: "'Prompt', Sans-serif", fontSize: 14, color: "rgba(0,0,0,0.6)"}}>
                                     to
                                 </span>
-                                {get_short_date_DAYMMMDD(segment.arrival_datetime) + " ("}
-                                {convert24HTimeToAMPM(segment.arrival_datetime.split("T")[1]) + ")"}
+                                {get_short_date_DAYMMMDD(segment?.arriving_at) + " ("}
+                                {convert24HTimeToAMPM(segment?.arriving_at.split("T")[1]) + ")"}
                             </p>
                             <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 13, color: "rgba(0,0,0,0.7)"}}>
                                 This flight is operated by {segment.operating_carrier.name}. {segment.operating_carrier.conditions_of_carriage_url && <a href={segment.operating_carrier.conditions_of_carriage_url} rel="noreferrer" target="_blank">
@@ -361,7 +361,7 @@ const OrderCompletedPage = (props) => {
                             </p>
                             <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 13, color: "rgba(0,0,0,0.7)"}}>
                                 <span style={{fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
-                                    Take off: {convert24HTimeToAMPM(segment.departure_datetime.split("T")[1])}
+                                    Take off: {convert24HTimeToAMPM(segment.departing_at.split("T")[1])}
                                 </span>, Aircraft: {segment.aircraft.name}, Checked bags: {total_checked_baggages}, Carry-on bags: {total_carry_on_baggages}
                             </p>
                             <p style={{fontFamily: "'Prompt', Sans-serif", fontSize: 13, color: "rgba(0,0,0,0.7)"}}>

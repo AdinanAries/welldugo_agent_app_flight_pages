@@ -520,13 +520,15 @@ export default function CheckoutPage(props){
                     itinerary_id: __obj?.itinerary_id, 
                     booking_id: logged._id,
                     confirmation_number: res.data?.booking_reference,
+                    app_url: __obj?.app_url,
                     product_type: __obj?.product_type,
                     prod_index: __obj?.prod_index,
                     item_index: __obj?.item_index,
                     item_id: __obj?.item_id,
                     item_details: __obj?.item_details,
                     link_type: "booking_id", 
-                    url_link: `@wdg_client_domain_url/search?product=0&booking_id=${logged._id}&cust_eml=${res.data?.passengers[0]?.email}&ag=${__obj?.user_id}`, // to do (Also, wdg_client_domain=>placeholder to be replaced with actual domain url)
+                    url_link: `${__obj?.app_url}/search?product=0&booking_id=${logged._id}&cust_eml=${res.data?.passengers[0]?.email}&ag=${__obj?.user_id}`, // to do (Also, wdg_client_domain=>placeholder to be replaced with actual domain url)
+                                               //search?product=0&booking_id=676b5fb6cffcb2b26efec8b2&cust_eml=adinanaries@gmail.com&ag=67fdc8bc45641576b851aafd
                     is_booked: true, 
                     customer_email: res.data?.passengers[0]?.email,
                     is_verified: true,
