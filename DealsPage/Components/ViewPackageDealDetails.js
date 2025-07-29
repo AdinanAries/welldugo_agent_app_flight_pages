@@ -32,6 +32,11 @@ const ViewPackageDealDetails = (props) => {
         text_editor_content,
     } = data;
 
+    let agent_id="";
+    if(localStorage.getItem("agent")){
+        agent_id = localStorage.getItem("agent");
+    }
+
     const __THEME_COLORS = {
         sunshine: {
             primary: "yellow",
@@ -59,7 +64,6 @@ const ViewPackageDealDetails = (props) => {
 
     const INCLUDED_ITEMS_NAME_ARRAY = data.items?.map(each=>each.name);
 
-
     return <div style={{background: "white"}}>
         <div style={{borderBottom: "1px solid rgba(0,0,0,0.1)", background: "rgb(0, 37, 63)"}}>
             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", padding: 20}}>
@@ -71,11 +75,13 @@ const ViewPackageDealDetails = (props) => {
                         {travel_destination}
                     </p>
                 </div>
-                <div style={{cursor: "pointer", color: "orange", fontSize: 13, textDecoration: "underline"}}>
-                    <i style={{marginRight: 10, color: "rgba(255,255,255,0.5)"}}
-                        className="fa-solid fa-arrow-up"></i>
-                    See Package/Deals List
-                </div>
+                <a href={`/deals?&ag=${agent_id}`} style={{textDecoration: "none"}}>
+                    <div style={{cursor: "pointer", color: "orange", fontSize: 13, textDecoration: "underline"}}>
+                        <i style={{marginRight: 10, color: "rgba(255,255,255,0.5)"}}
+                            className="fa-solid fa-arrow-up"></i>
+                        See Package/Deals List
+                    </div>
+                </a>
             </div>
         </div>
         <div>

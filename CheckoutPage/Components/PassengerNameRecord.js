@@ -25,6 +25,7 @@ const PassengerNameRecord = (props) => {
     const [ allInfantsPassengers, setAllInfantPassengers ] = useState([]);
 
     const { 
+        hide_prices_section,
         passengers, 
         prices, 
         resetCheckoutConfirmation, 
@@ -33,6 +34,8 @@ const PassengerNameRecord = (props) => {
         hasNewMessageFromParent,
         currentParentMessge,
     } = props;
+
+    const SHOW_PRICES = (hide_prices_section ? !hide_prices_section : true);
 
     useEffect(()=> {
         setAdultPsngrForInfants();
@@ -77,7 +80,7 @@ const PassengerNameRecord = (props) => {
     return (
         <div>
             <div className="checkout_page_all_info_flex_container">
-                <div className="checkout_page_all_info_flex_left checkout_passengers_container">
+                <div className="checkout_page_all_info_flex_left checkout_passengers_container" style={{width: SHOW_PRICES ? "calc(65% - 30px)" : "100%"}}>
                     <div style={{marginTop: 10}}>
                         <p style={{color: "rgba(0,0,0,0.7)", fontSize: 13, fontFamily: "'Prompt', Sans-serif"}}>
                             <i className={pageMsg.icon} style={{marginRight: 10, color: "green"}}></i>
@@ -114,18 +117,21 @@ const PassengerNameRecord = (props) => {
                         </div>
                     </div>
                 </div>
-                <div className="checkout_page_all_info_flex_right">
-                    <PriceSummary 
-                        bookingEngine={bookingEngine}
-                        prices={prices}
-                        buttonFunction={props.showPaymentPage} 
-                        backButtonFunction={showInfoPage}
-                        buttonText="Payment"
-                        total_travelers={passengers.length}
-                        hasNewMessageFromParent={hasNewMessageFromParent}
-                        currentParentMessge={currentParentMessge}
-                    />
-                </div>
+                {
+                    SHOW_PRICES &&
+                    <div className="checkout_page_all_info_flex_right">
+                        <PriceSummary 
+                            bookingEngine={bookingEngine}
+                            prices={prices}
+                            buttonFunction={props.showPaymentPage} 
+                            backButtonFunction={showInfoPage}
+                            buttonText="Payment"
+                            total_travelers={passengers.length}
+                            hasNewMessageFromParent={hasNewMessageFromParent}
+                            currentParentMessge={currentParentMessge}
+                        />
+                    </div>
+                }
             </div>
         </div>
     );
