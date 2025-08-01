@@ -48,7 +48,7 @@ const HeroMainMenu = (props) => {
                             show_full_search_form();
                         }}
                     />
-                    <div style={{padding: "20px 10px",}} onClick={()=>{
+                    <div style={{padding: "20px 10px"}} onClick={()=>{
                         change_product_type(CONSTANTS.product_types.flights)
                         window.location.href="/search";
                     }}>
@@ -79,9 +79,12 @@ const HeroMainMenu = (props) => {
                         style={{cursor: "pointer", textAlign: "center", color: "rgba(169, 221, 255, 0.8)", marginLeft: 20, fontSize: 14, padding: "20px 10px", fontFamily: "'Prompt', Sans-serif"}}>
                     <i style={{marginRight: 10}} className="fa-solid fa-box-open"></i>
                     Packages</div>
-                <div className="agent_hero_menu_item main" id="landing_page_hero_manu_bar_bot_item" style={{cursor: "pointer", textAlign: "center", color: "rgba(169, 221, 255, 0.8)", marginLeft: 20, fontSize: 14, padding: "20px 10px", fontFamily: "'Prompt', Sans-serif"}}>
-                    <i style={{marginRight: 10}} className="fa-solid fa-robot"></i>
-                    Agent</div>
+                <div className="feedback_hero_menu_item main" 
+                    onClick={()=>{window.location.href="/support"}}
+                    style={{cursor: "pointer", textAlign: "center", color: "rgba(169, 221, 255, 0.8)", marginLeft: 20, fontSize: 14, padding: "20px 10px", fontFamily: "'Prompt', Sans-serif"}}>
+                    <i style={{marginRight: 10}} className="fa-solid fa-headset"></i>
+                        Support
+                </div>
                 <div className="currency_hero_menu_item main" 
                         onClick={toggle_show_hide_currency_page}
                         style={{cursor: "pointer", textAlign: "center", color: "rgba(169, 221, 255, 0.8)", marginLeft: 20, fontSize: 14, padding: "20px 10px", fontFamily: "'Prompt', Sans-serif"}}>
@@ -137,13 +140,11 @@ const HeroMainMenu = (props) => {
                                 style={{cursor: "not-allowed", textAlign: "initial", color: "rgba(255,255,255,0.4)", fontSize: 14, padding: "10px", fontFamily: "'Prompt', Sans-serif"}}>
                             <i style={{marginRight: 10}} className="fa-solid fa-comment-dots"></i>
                             Feedback</div>
-                            <div className="feedback_hero_menu_item dropdown" 
-                                onClick={()=>show_prompt_on_Bot_AD_tips_popup(
-                                    "Support Feature is in maintenance",
-                                    CONSTANTS.bot.prompt_types.warn)}
-                                style={{cursor: "not-allowed", textAlign: "initial", color: "rgba(255,255,255,0.4)", fontSize: 14, padding: "10px", fontFamily: "'Prompt', Sans-serif"}}>
-                        <i style={{marginRight: 10}} className="fa-solid fa-headset"></i>
-                            Support</div>
+                        <div className="agent_hero_menu_item" id="landing_page_hero_manu_bar_bot_item"
+                                style={{cursor: "cursor", textAlign: "initial", color: "rgba(169, 221, 255, 0.8)", fontSize: 14, padding: "10px", fontFamily: "'Prompt', Sans-serif"}}>
+                            <i style={{marginRight: 10}} className="fa-solid fa-robot"></i>
+                            Agent
+                        </div>
                     </div>
                 </div>
             </div>

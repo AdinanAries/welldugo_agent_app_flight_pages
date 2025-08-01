@@ -32,25 +32,22 @@ const DealList = (props) => {
                 </p>
             </div>
             <div>
-                {
-                    totalItems > PAGI_LIMIT &&
-                    <select onInput={e=>setpagiCurrentPage(e.target.value)}
-                        value={pagiCurrentPage}
-                        className="select-input-paginator"
-                    >
-                        {
-                            all_pages?.map((each, i)=>{
-                                return <option
-                                    value={each}
-                                >{each} - {(each+PAGI_LIMIT-1)}</option>
-                                    
-                            })  
-                        }
-                    </select>
-                }
+                <select onInput={e=>setpagiCurrentPage(e.target.value)}
+                    value={pagiCurrentPage}
+                    className="select-input-paginator"
+                >
+                    {
+                        all_pages?.map((each, i)=>{
+                            return <option
+                                value={each}
+                            >{each} - {(each+PAGI_LIMIT-1)}</option>
+                                
+                        })  
+                    }
+                </select>
             </div>
         </div>
-        <div style={{display: "flex", flexWrap: "wrap", justifyContent: "center"}}>
+        <div style={{display: "flex", flexWrap: "wrap"}}>
             {
                 deals.map(each=><DealItem 
                         data={each}

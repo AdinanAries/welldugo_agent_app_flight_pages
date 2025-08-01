@@ -35,10 +35,10 @@ const DealItem = (props) => {
 
     const INCLUDED_ITEMS_NAME_ARRAY = data.items?.map(each=>each.name);
 
-    return <div className="deals-list-item" style={{overflow: "hidden", cursor: "pointer", width: "calc(25% - 6px)", minHeight: 300, background: "rgb(46, 46, 46)", margin: 3, boxShadow: "0 0 5px rgba(0, 0, 0, 0.5)"}}>
-        <div style={{height: 200, backgroundImage: `url('${coverImg}')`, backgroundSize: "cover", backgroundRepeat: "no-repeat"}}>
+    return <div className="deals-list-item" style={{overflow: "hidden", cursor: "pointer", width: "calc(33% - 6px)", minHeight: 300, background: "rgb(46, 46, 46)", margin: 3, boxShadow: "0 0 5px rgba(0, 0, 0, 0.5)"}}>
+        <div style={{height: 250, backgroundImage: `url('${coverImg}')`, backgroundSize: "cover", backgroundRepeat: "no-repeat"}}>
         </div>
-        <div style={{padding: 10}}>
+        <div style={{padding: 20}}>
             <h5 style={{color: "white"}}>
                 {title}
             </h5>

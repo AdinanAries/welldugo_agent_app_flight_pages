@@ -21,10 +21,6 @@ const PassengerCard = (props) => {
         adults_arr_infants_select.unshift(adult);
     }
 
-    useEffect(() => {
-
-    }, []);
-
     return (
         <div className="checkout_passenger_card" style={{position: "relative", border: "1px dashed rgba(0,0,0,0.2)", width: "calc(50% - 5px)", borderRadius: 8, marginTop: 7}}>
             <div onClick={()=>props.selectPassengerCard(props.index)} style={{cursor: "pointer", padding: 10, backgroundColor: "rgba(0,0,0,0.07)"}}>

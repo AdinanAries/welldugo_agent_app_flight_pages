@@ -9,6 +9,8 @@ import { fetchAgentPriceMarkupInfo } from "../../../services/agentServices";
 const PriceSummary = (props) => {
 
     const { 
+        disregard_markup,
+        item_type,
         payments, 
         prices, 
         total_travelers, 
@@ -16,6 +18,8 @@ const PriceSummary = (props) => {
         hasNewMessageFromParent,
         currentParentMessge,
     } = props;
+
+    const __item_type = (item_type || "Flight");
     let overallTotal = parseFloat(prices.total_amount);
 
     const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
@@ -30,6 +34,16 @@ const PriceSummary = (props) => {
             
     useEffect(()=>{
         (async()=>{
+
+            if(disregard_markup){
+                setCanShowPrice({
+                    profit_type: "",
+                    with_price_bound_profit: false,
+                    show: true,
+                });
+                return;
+            }
+
             let _pm_obj = {
                 type: "",
                 value: 0,
@@ -99,7 +113,7 @@ const PriceSummary = (props) => {
     extras.forEach(each=>{
         overallTotal=(overallTotal+each.total);
         EXTRAS_MARKUP.push(
-            <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", marginTop: 10}}>
+            <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                 <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.7)"}}>
                     {each.name} ({each?.quantity})
                 </p>
@@ -141,7 +155,7 @@ const PriceSummary = (props) => {
             <div style={{marginTop: 20, borderBottom: "1px solid rgba(0,0,0,0.1)", paddingBottom: 10}}>
                 <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                     <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.8)"}}>
-                        {total_travelers>1 ? (total_travelers+" Travelers"): (total_travelers+" Traveler")}:
+                        {total_travelers>1 ? (total_travelers+" People"): (total_travelers+" Person")}:
                     </p>
                     <p style={{fontSize: 14, letterSpacing: 1, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
                         {
@@ -170,9 +184,9 @@ const PriceSummary = (props) => {
                         }
                     </p>
                 </div>
-                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", marginTop: 10}}>
+                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                     <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.7)"}}>
-                        Flight
+                        {__item_type}
                     </p>
                     <p style={{fontSize: 14, letterSpacing: 1, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}}>
                         {
@@ -201,8 +215,7 @@ const PriceSummary = (props) => {
                         }
                     </p>
                 </div>
-                {EXTRAS_MARKUP.map(each=>each)}
-                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", marginTop: 10}}>
+                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                     <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.7)"}}>
                         Taxes and fees
                     </p>
@@ -232,6 +245,9 @@ const PriceSummary = (props) => {
                             </span>
                         }
                     </p>
+                </div>
+                <div style={{marginTop: 10}}>
+                    {EXTRAS_MARKUP.map(each=>each)}
                 </div>
             </div>
             <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", marginTop: 20}}>

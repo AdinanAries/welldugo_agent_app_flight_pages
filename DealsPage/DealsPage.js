@@ -1,4 +1,5 @@
 import NotLoggedIn from '../../components/NotLoggedIn';
+import CONSTANTS from '../../Constants/Constants';
 import Waiting from '../../components/Waiting';
 import DealList from './Components/DealList';
 import deals_page_icon from "../../icons/deals_page_icon.svg";
@@ -9,13 +10,20 @@ import {
     fetchDealPackageById, 
     fetchDealsPackagesByAgentID 
 } from '../../services/agentServices';
+import { getTotalDefaultFees } from '../../helpers/Prices';
 import AgentNotFoundHeader from '../../components/AgentNotFoundHeader';
 import PriceSummary from '../CheckoutPage/Components/PriceSummary';
 import CustomerForms from './Components/CustomerForms';
 import PaymentPage from './Components/PaymentPage';
 import {Elements} from '@stripe/react-stripe-js';
 import {loadStripe} from '@stripe/stripe-js';
-import {useStripe, useElements, PaymentElement} from '@stripe/react-stripe-js';
+import { 
+    calculate_age,
+    obj_has_empty_prop,
+} from '../../helpers/general';
+import { toast } from 'react-toastify';
+import PackageConfirmationEmailMarkup from '../../helpers/PackageConfirmationEmailMarkup';
+import Logger, { getBookingConfirmedLogMessage } from '../../helpers/Logger';
 
 const stripePromise = loadStripe('pk_test_51OdjZ3An0YMgH2TtyCpkCBN4vDrMuQlwvmFSNKqBl9gJY996OXSpZ9QLz5dBGHLYLsa7QVvwY51I0DcLHErLxW7y00vjEWv9Lc');
 
@@ -43,11 +51,16 @@ function DealsPage(props){
         payment_txt: "Payment",
     }
 
-    const PAGI_LIMIT = 10;
+    const PAGI_LIMIT = 9;
 
     // For Stripe
     const [ options, setOptions ] = useState();
     const [ paymentIntent, setPaymentIntent ] = useState({});
+    const [ prices, setPrices ] = useState({
+        total_amount: 0, // Base + Tax only
+        extras: []
+    });
+    const [ stage, setStage ] = useState({percentage: 0, step: "", message: ""});
     const [ bookingIntent, setBookingIntent ] = useState({});
     const [ passengers, setPassengers ] = useState([
         {
@@ -70,6 +83,14 @@ function DealsPage(props){
                 "born_on": ""
             }
     ]);
+    const [ isBookingConfirmed, setIsBookingConfirmed] = useState(false);
+    const [ bookPackageDetails, setBookPackageDetails ] = useState({
+        package_info: {},
+        payment_intent: {},
+        booking_intent: {},
+        passengers: []
+    });
+    const [ completedOrderDetails, setCompletedOrderDetails ] = useState({});
     const [ isLoading, setIsLoading ] = useState(false);
     const [ isError, setIsError ] = useState(false);
     const [ errorMessage, setErrorMessage ] = useState("Unkown Error: Please contact support for assitance.");
@@ -78,7 +99,11 @@ function DealsPage(props){
     const [ errorCode, setErrorCode ] = useState(ERROR_CODES.no_error);
     const [ currentStage, setCurrentStage ] = useState(__STAGES?.preview);
     const [ stageNextButtonText, setstageNextButtonText ] = useState(__STAGES?.pnr_txt);
-
+    const [ checkoutConfirmation, setCheckoutConfirmation ] = useState({
+        type: "server_error",
+        isError: false,
+        message: "",
+    });
     const [ totalItems, setTotalItems ] = useState(0);
     const [ pagiCurrentPage, setpagiCurrentPage ] = useState(1);
     const [ searchQuery, setSearchQuery ] = useState("");
@@ -94,65 +119,121 @@ function DealsPage(props){
     const API_HOST=getApiHost();
 
     useEffect(()=>{
-        (async()=>{
-            
-            if(!paymentIntent?.id){
-                    // Creating payment intent
-                const pi = await fetch((API_HOST+'/api/payment/secret/'), {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        amount: 2000,//markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price.toFixed(2),
-                        currency: 'usd'
-                    })
-                }).then(res=>res.json()).then(data=>data).catch(e=>console.log(e));
-                const {client_secret: clientSecret} = pi;
-
-                /*/ Creating booking intent with payment
-                let agent_id = "";
-                if(localStorage.getItem("agent"))
-                    agent_id = localStorage.getItem("agent") || "";
-                    
-                let bookingItent = {
-                    oc_user_id: agent_id,
-                    payment_intent: pi,
-                    booking_order: checkoutPayload,
+        if(currentStage===__STAGES?.payment){
+            (async()=>{
+                let total_to_charge = prices?.total_amount; 
+                // Remember Services Fees, Welldudo Charges, Stripe and Taxes
+                if(!total_to_charge){
+                    return;
                 }
-                const bi = await fetch((API_HOST+'/api/activities/booking-intent/'), {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(bookingItent)
-                }).then(res=>res.json()).then(data=>data).catch(e=>console.log(e));
+                total_to_charge = (total_to_charge * 100);
+                if(!paymentIntent?.id){
+                        // Creating payment intent
+                    const pi = await fetch((API_HOST+'/api/payment/secret/'), {
+                        method: "POST",
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            amount: total_to_charge,
+                            currency: 'usd'
+                        })
+                    }).then(res=>res.json()).then(data=>data).catch(e=>console.log(e));
+                    const {client_secret: clientSecret} = pi;
 
-                // Setting state for re-use
-                setBookingIntent(bi);*/
-                setPaymentIntent(pi);
+                    setPaymentIntent(pi);
 
-                // Render the form using the clientSecret
-                setOptions({
-                    // passing the client secret obtained from the server
-                    ...options,
-                    clientSecret,
-                });
-            }
-        })()
-    }, []);
+                    // Creating booking intent with payment
+                    let agent_id = "";
+                    if(localStorage.getItem("agent"))
+                        agent_id = localStorage.getItem("agent") || "";
+                        
+                    let bookingItent = {
+                        oc_user_id: agent_id,
+                        payment_intent: pi,
+                        booking_order: selectedPackageDeal,
+                    }
+                    const bi = await fetch((API_HOST+'/api/activities/booking-intent/'), {
+                        method: "POST",
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(bookingItent)
+                    }).then(res=>res.json()).then(data=>data).catch(e=>console.log(e));
 
-    useEffect(()=>{
+                    // Setting state for re-use
+                    setBookingIntent(bi);
+
+                    // Render the form using the clientSecret
+                    setOptions({
+                        // passing the client secret obtained from the server
+                        ...options,
+                        clientSecret,
+                    });
+                }
+            })();
+        }
+
         if(currentStage===__STAGES?.preview){
             setstageNextButtonText(__STAGES?.pnr_txt);
         }else if(currentStage===__STAGES?.pnr){
             setstageNextButtonText(__STAGES?.payment_txt);
-        }else if(currentStage===__STAGES?.payment_txt){
+        }else if(currentStage===__STAGES?.payment){
             setstageNextButtonText("");
         }
-    }, [currentStage]);
+
+    }, [ selectedPackageDeal, currentStage, prices ]);
+
+    useEffect(()=>{
+        if(selectedPackageDeal?._id){
+            // 1. Get Service Fees
+            const base_amount = parseFloat(selectedPackageDeal?.total_price);
+            const tax_amount = 50;
+            const total_amount = parseFloat(tax_amount+base_amount);
+            const extras = [{
+                    name: "Welldugo Fees",
+                    quantity: 1,
+                    total: 15,
+                    total_currency: "usd",
+                },
+                {
+                    name: "Welldugo Fees",
+                    quantity: 1,
+                    total: 15,
+                    total_currency: "usd",
+                }
+            ];
+            
+            let _prices = {
+                total_amount,
+                base_amount,
+                tax_amount,
+                extras,
+                total_currency: "usd",
+                base_currency: "usd",
+                tax_currency: "usd",
+            }
+            setPrices(_prices)
+        }
+    }, [ selectedPackageDeal ]);
+
+    useEffect(()=>{
+        let page = window.location.pathname.substring(1);
+        if(CONSTANTS.site_pages.deals===page){
+            init_deals();
+        }
+    }, [ pagiCurrentPage ]);
+
+    useEffect(()=>{
+        setBookPackageDetails({
+            ...bookPackageDetails,
+            payment_intent: paymentIntent,
+            booking_intent: bookingIntent,
+            passengers: passengers,
+        })
+    }, [paymentIntent, bookingIntent, passengers]);
 
     const init_deals = async () => {
         const params = new URLSearchParams(window.location.search);
@@ -210,6 +291,8 @@ function DealsPage(props){
         }
     }else if(currentStage===__STAGES?.pnr){
         __NEXT_STAGE_FUNCTION = ()=>{
+            if(!is_passenger_data_all_set())
+                return
             setCurrentStage(__STAGES?.payment);
         }
         __PREVIOUS_STAGE_FUNCTION = ()=>{
@@ -224,14 +307,213 @@ function DealsPage(props){
     }
 
     const resetCheckoutConfirmation = () => {
-
+        setCheckoutConfirmation({
+            type: "server_error",
+            isError: false,
+            message: "",
+        });
     }
     
-    const savePassengerInfo = () => {
+    const PROCESSOR_INTERVAL = 500;
+    const startProcessingPayment = () => {
+        let i=0;
+        setStage({percentage: 1, step: "Payment", message: "Processing Payment"});
+        return new Promise((resolve)=>{
+            const intvl = setInterval(()=>{
+                i+=10;
+                setStage({percentage: i, step: "Payment", message: "Processing Payment"});
+                if(i===40){
+                    clearInterval(intvl)
+                    resolve(true);
+                }
+                if(i===100){
+                    endCheckoutProcessing();
+                    resolve(true);
+                }
+            }, PROCESSOR_INTERVAL);
+        });
+    }
+
+    const startProcessingBookingOrder = () => {
+        let i=40;
+        return new Promise((resolve)=>{
+            const intvl = setInterval(()=>{
+                i+=10;
+                setStage({percentage: i, step: "Order", message: "Ordering your Package from Agent"});
+                if(i===70){
+                    clearInterval(intvl);
+                    resolve(true);
+                }
+                if(i===100){
+                    endCheckoutProcessing();
+                    resolve(true);
+                }
+            }, PROCESSOR_INTERVAL);
+        });
+    }
+
+     const endCheckoutProcessing = () => {
+        setStage({percentage: 0, step: "", message: ""});
+    }
+
+    const startProcessingBookingOrderError = () => {
+        let i=70;
+        return new Promise((resolve)=>{
+            const intvl = setInterval(()=>{
+                i+=10;
+                setStage({percentage: i, step: "Error", message: "Oops! An Error Occurred"});
+                if(i===100){
+                    endCheckoutProcessing();
+                    clearInterval(intvl)
+                    resolve(true);
+                }
+            }, PROCESSOR_INTERVAL);
+        });
+    }
+
+    const startProcessingBookingLog = () => {
+        let i=70;
+        return new Promise((resolve)=>{
+            const intvl = setInterval(()=>{
+                i+=10;
+                setStage({percentage: i, step: "Log", message: "Logging your booking"});
+                if(i===90){
+                    endCheckoutProcessing();
+                    clearInterval(intvl)
+                    resolve(true);
+                }
+            }, PROCESSOR_INTERVAL);
+        });
+    }
+
+    const CompletedBookingCleanup = () => {
+        // Reset Payment Intent
+        setPaymentIntent(null);
+        setBookingIntent(null);
+        let i=90;
+        return new Promise((resolve)=>{
+            const intvl = setInterval(()=>{
+                i+=10;
+                setStage({percentage: i, step: "Redirecting", message: "Redirecting to Confirmation Page"});
+                if(i===100){
+                    endCheckoutProcessing();
+                    clearInterval(intvl)
+                    resolve(true);
+                }
+            }, PROCESSOR_INTERVAL);
+        });
+    }
+
+    const createOrderOnSubmit = async () => {
+
+        // 1. Creating flight order
+        await startProcessingBookingOrder();
+        // Bind payment intent to checkout obj
+        let totalFees=getTotalDefaultFees();
+        let res={}; //await createPackageOrder(bookPackageDetails);
+        if(res?._id){
+            setIsBookingConfirmed(true);
+            setCompletedOrderDetails(res);
+            // 2. Logging booking as user activity
+            Logger.log_activity({
+                title: "Package Booking Confirmed",
+                body: getBookingConfirmedLogMessage(res, "package"),
+                resource_id: res?._id,
+                resource_type: CONSTANTS.resource_types.booking_history,
+            });
+
+            //Seding email to customer
+            const MSG = {
+                to: res.data?.passengers[0]?.email,
+                subject: " - Package Booking Confirmation",
+                text: `
+                Dear ${res?.passengers[0]?.given_name} ${res?.passengers[0]?.family_name},\n\n
+                \tPlease view your booking confirmation details below:`,
+                html: PackageConfirmationEmailMarkup(res),
+            }
+            const email_res = await fetch((API_HOST+'/api/email/send/'), {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(MSG)
+            }).then(res=>res.json()).then(data=>data).catch(e=>console.log(e));
+            console.log(email_res);
+
+            // Redirecting to Confirmation Page and Cleaning up
+            await CompletedBookingCleanup();
+        }else{
+            await startProcessingBookingOrderError();
+            setCheckoutConfirmation({
+                type: "server_error",
+                isError: true,
+                message: res.message,
+            });
+        }
 
     }
-    const setResponsibleAdultForInfant = () => {
 
+    const savePassengerInfo = (new_info_obj, index) => {
+        let _passengers = passengers;
+        _passengers[index] = new_info_obj;
+        setPassengers(_passengers);
+    }
+
+    const setResponsibleAdultForInfant = (e) => {
+        let __passengers = passengers;
+        // vals = [infant_id, adult_id] after split function
+        const vals = e.target.value.split(CONSTANTS.special_str_separator);
+        //Previous responsible adult
+        let prev_adult = __passengers.find(passenger=>passenger.infant_passenger_id===vals[0]);
+        if(prev_adult){
+            delete prev_adult.infant_passenger_id;
+        }
+
+        //New responsible adult
+        let adult = __passengers.find(passenger=>passenger.id===vals[1]);
+        let adult_index = __passengers.findIndex(passenger=>passenger.id===vals[1]);
+        adult.infant_passenger_id=vals[0];
+        __passengers[adult_index]=adult;
+
+        //Assigning adults phone and email to the infant
+        let infant = __passengers.find(passenger=>passenger.id===vals[0]);
+        let infant_index = __passengers.findIndex(passenger=>passenger.id===vals[0]);
+        infant.phone_number=adult.phone_number;
+        infant.email=adult.email;
+        __passengers[infant_index]=infant;
+
+        setPassengers(__passengers);
+    }
+
+    const is_passenger_data_all_set = () => {
+        let has_all_data = true;
+        let all_infants_have_responsible_adults=true;
+        for(let i=0; i<passengers.length; i++){
+            if(obj_has_empty_prop(passengers[i])){
+                has_all_data=false;
+            }
+            //Infant passengers
+            if(calculate_age(passengers[i].born_on) <= CONSTANTS.infant_age_threshold){
+                let id_found=false;
+                for(let j=0; j < passengers.length; j++){
+                    if(passengers[j]?.infant_passenger_id===passengers[i].id)
+                        id_found=true;
+                }
+                if(!id_found)
+                    all_infants_have_responsible_adults=false;
+            }
+        }
+        if(!has_all_data){
+            toast("Please complete all passenger forms to continue");
+            return false;
+        }
+        if(!all_infants_have_responsible_adults){
+            toast("All infant passengers must have responsible adults");
+            return false;
+        }
+
+        return true;
     }
 
     return(
@@ -337,6 +619,13 @@ function DealsPage(props){
                                                 (options?.clientSecret) &&
                                                 <Elements stripe={stripePromise} options={options}>
                                                     <PaymentPage 
+                                                        loadingStages={stage}
+                                                        createOrderOnSubmit={createOrderOnSubmit}
+                                                        startProcessingPayment={startProcessingPayment}
+                                                        startProcessingBookingOrderError={startProcessingBookingOrderError}
+                                                        checkoutConfirmation={checkoutConfirmation}
+                                                        setCheckoutConfirmation={setCheckoutConfirmation}
+                                                        selectedPackageDeal={selectedPackageDeal}
                                                         paymentIntent={paymentIntent}
                                                         setPaymentIntent={setPaymentIntent}
                                                         bookingIntent={bookingIntent}
@@ -347,20 +636,60 @@ function DealsPage(props){
                                                     />
                                                 </Elements>
                                             }
+                                            {
+                                                !selectedPackageDeal?.total_price &&
+                                                <div>
+                                                    <div style={{padding: 20, marginBottom: 10, backgroundColor: "black"}}>
+                                                        <p style={{color: "white", fontSize: 13}}>
+                                                            <i style={{marginRight: 10, color: "yellow"}}
+                                                                className='fa-solid fa-exclamation-triangle'></i>
+                                                            No price information available!
+                                                        </p>
+                                                    </div>
+                                                    <div style={{padding: 10, borderTop: "1px solid rgba(0,0,0,0.1)"}}>
+                                                        <p  style={{marginBottom: 8, color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sanserif", fontWeight: "bolder", fontSize: 13}}>
+                                                            Emergency Contact</p>
+                                                        <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                            Call: <span style={{letterSpacing: 1, color: "green",fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                                +1 7327999546 </span>
+                                                        </p>
+                                                        <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                            Email: <span style={{letterSpacing: 1, color: "green",fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                            adinanaries@outlook.com </span>
+                                                        </p>
+                                                        <div style={{display: "flex", alignItems: "center", marginTop: 10}}>
+                                                            <div style={{marginRight: 10, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "100%", minWidth: 57, height: 57, backgroundColor: "rgba(0,0,0,0.1)", border: "1px solid rgba(0,0,0,0.1)"}}>
+                                                                <div>
+                                                                    <p style={{textAlign: "center", fontSize: 22, marginTop: -5}}>
+                                                                        <i style={{color: "rgba(0,0,0,0.7)"}} className="fa-solid fa-robot"></i>
+                                                                    </p>
+                                                                    <p style={{fontSize: 9, fontFamily: "'Prompt', Sanserif"}}>
+                                                                        Bot AD</p>
+                                                                </div>
+                                                            </div>
+                                                            <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                                Hey! we're with you every step of the way. Please reach out...
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
                                         </div>
                                     }
                                 </div>
                                 <div className="checkout_page_all_info_flex_right" style={{backgroundColor: "#eee", borderLeft: "1px solid rgba(0,0,0,0.1)"}}>
                                     <PriceSummary 
-                                        prices={{
-                                            total_amount: 1200,
-                                            extras: []
-                                        }}
+                                        prices={prices}
                                         bookingEngine={bookingEngine}
                                         buttonFunction={__NEXT_STAGE_FUNCTION}
                                         backButtonFunction={__PREVIOUS_STAGE_FUNCTION}
                                         buttonText={stageNextButtonText}
-                                        total_travelers={12}
+                                        total_travelers={(parseInt(selectedPackageDeal?.max_num_of_adults)
+                                                        +parseInt(selectedPackageDeal?.max_num_of_children)
+                                                        +parseInt(selectedPackageDeal?.max_num_of_infants))}
+                                        disregard_markup={true}
+                                        item_type={"Package"}
+                                        isPaymentPage={(currentStage===__STAGES?.payment)}
                                     />
                                 </div>
                             </div>

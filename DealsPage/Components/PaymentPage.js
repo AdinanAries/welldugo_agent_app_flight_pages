@@ -1,21 +1,20 @@
 import {useStripe, useElements, PaymentElement} from '@stripe/react-stripe-js';
-import { useEffect } from 'react';
 import { getApiHost } from '../../../Constants/Environment';
 
 const PaymentPage = (props) => {
 
   const { 
-    //createOrderOnSubmit,
-    //startProcessingPayment,
-    //startProcessingBookingOrderError,
-    //checkoutConfirmation,
-    //setCheckoutConfirmation,
+    createOrderOnSubmit,
+    startProcessingPayment,
+    startProcessingBookingOrderError,
+    checkoutConfirmation,
+    setCheckoutConfirmation,
     paymentIntent, 
     setPaymentIntent,
     bookingIntent, 
-    //loadingStages,
-    //checkoutPayload,
+    loadingStages,
     bookingEngine,
+    selectedPackageDeal,
   } = props;
 
   const API_HOST=getApiHost();
@@ -28,7 +27,7 @@ const PaymentPage = (props) => {
     event.preventDefault();
 
     // 1. Processing Payment
-    //await startProcessingPayment();
+    await startProcessingPayment();
     
     if (!stripe || !elements) {
       // Stripe.js hasn't yet loaded.
@@ -43,18 +42,18 @@ const PaymentPage = (props) => {
       elements,
       confirmParams: {
           return_url: "https://willgo-test.herokuapp.com",
-      },
-      redirect: "if_required",
+        },
+        redirect: "if_required",
       });
 
       if (result?.error) {
-      /*await startProcessingBookingOrderError();
-      setCheckoutConfirmation({
-          type: "server_error",
-          isError: true,
-          message: result?.error?.message,
-      });*/
-      return;
+        await startProcessingBookingOrderError();
+        setCheckoutConfirmation({
+            type: "server_error",
+            isError: true,
+            message: result?.error?.message,
+        });
+        return;
       } else if (result?.paymentIntent && result?.paymentIntent?.status === "requires_capture"){
         // Updating booking intent with new payment status
         bookingIntent.payment_intent = result?.paymentIntent;
@@ -69,58 +68,57 @@ const PaymentPage = (props) => {
         // Setting new payment intent
         setPaymentIntent(result?.paymentIntent);
       } else {
-        /*await startProcessingBookingOrderError();
+        await startProcessingBookingOrderError();
         setCheckoutConfirmation({
             type: "server_error",
             isError: true,
             message: "Payment failed",
-        });*/
+        });
         return;
       }
     }
     
     // 3. Creating the Booking Order
-    // Security - Server checks payment Status using payment intent before ordering booking
-    /*let pi=((result?.paymentIntent) || paymentIntent);
-    createOrderOnSubmit(pi, bookingIntent);*/
+    createOrderOnSubmit();
   };
 
   return (
     <form onSubmit={CheckoutOnSubmit}>
-    
       {
         (!paymentIntent?.id || paymentIntent?.status==="requires_payment_method") && <PaymentElement />
       }
-      {/* ((paymentIntent?.id && paymentIntent?.status==="requires_capture") && (loadingStages?.percentage===0 || loadingStages?.percentage===100)) &&
+      {
+        ((paymentIntent?.id && paymentIntent?.status==="requires_capture") && 
+        (loadingStages?.percentage===0 || loadingStages?.percentage===100)) &&
         <div style={{padding: 10, border: "1px solid rgba(0,255,0,0.1)", background: "rgba(0,255,0,0.1)"}}>
-          <div>
+        <div>
             <div style={{display: "flex"}}>
-              <p style={{fontSize: 12}}> 
+            <p style={{fontSize: 12}}> 
                 <i style={{fontSize: 12, marginRight: 10, color: "green"}} className="fa-solid fa-info"></i>
-              </p>
-              <p style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
+            </p>
+            <p style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
                 <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
-                  Important Notice:</span> We 
+                Important Notice:</span> We 
                 have not charged you anything! However, your payment details have been captured. You only need to re-submit the order to comfirm the booking.
-              </p>
+            </p>
             </div>
             { checkoutConfirmation?.isError &&
-              <div style={{marginTop: 10, borderTop: "1px dashed rgba(0,0,0,0.1)", paddingTop: 10}}>
+            <div style={{marginTop: 10, borderTop: "1px dashed rgba(0,0,0,0.1)", paddingTop: 10}}>
                 <p style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
-                  The server returned the following error message: 
-                  <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", padding: "0 5px", margin: 5, backgroundColor: "crimson", color: "white"}}>
+                The server returned the following error message: 
+                <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", padding: "0 5px", margin: 5, backgroundColor: "crimson", color: "white"}}>
                     "{checkoutConfirmation.message}".</span>
-                  <b/>
+                <b/>
                     Please go back one step and check your passenger details by clicking on 
                     <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", padding: "0 5px", margin: 5, backgroundColor: "crimson", color: "white"}}>
-                      "Passengers"</span> at the top.
-                  <b/> Then open the passenger forms to confirm their details are correct
+                    "Passengers"</span> at the top.
+                <b/> Then open the passenger forms to confirm their details are correct
                 </p>
-              </div>
+            </div>
             }
-          </div>
         </div>
-      */}
+        </div>
+      }
       <button className='checkout_page_main_checkout_btn'
         style={{
               backgroundColor: bookingEngine?.actionButtonsBg,

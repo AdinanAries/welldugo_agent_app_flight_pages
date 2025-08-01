@@ -24,6 +24,7 @@ import FullPageLoader from '../../components/FullPageLoader';
 import FlightConfirmationEmailMarkup from "../../helpers/FlightConfirmationEmailMarkup";
 import { fetchAgentPriceMarkupInfo } from '../../services/agentServices';
 import { saveBookedItineraryItem } from '../../services/agentServices';
+import { getTotalDefaultFees } from '../../helpers/Prices';
 
 let INCLUDED_CHECKED_BAGS_EACH_PSNGR_QUANTITY = {};
 export default function CheckoutPage(props){
@@ -48,10 +49,10 @@ export default function CheckoutPage(props){
     const [ PRICES, SET_PRICES ] = useState(FLIGHT_DATA_ADAPTER.adaptPriceProps(payload));
     const [ overallTotal, setOverallTotal ] = useState(0);
     const [ activePage, setActivePage ] = useState(CONSTANTS.checkout_pages.info);
-    const [ isBookingConfirmed, setIsBookingConfirmed] = useState(false); // To Do
+    const [ isBookingConfirmed, setIsBookingConfirmed] = useState(false);
     const [ getBookedFlightDetailsOnly, setGetBookedFlightDetailsOnly ] = useState(true);
     const [ comfirmedBookingResourceID, setComfirmedBookingResourceID ] = useState("");
-    const [ completedOrderDetails, setCompletedOrderDetails ] = useState({});  // To Do
+    const [ completedOrderDetails, setCompletedOrderDetails ] = useState({});
     const [ checkoutConfirmation, setCheckoutConfirmation ] = useState({
         type: "server_error",
         isError: false,
@@ -477,7 +478,11 @@ export default function CheckoutPage(props){
         checkoutPayload.meta.totalFees=getTotalDefaultFees();
         let res=await createFlightOrder(checkoutPayload);
         if(res?.data?.id){
-            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject(res.data);
+            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject({
+                ...res.data,
+                price_markup: PriceMarkupValue,
+                price_status_at_checkout: canShowPrice,
+            });
             // 2. Adding to booking history
             await startProcessingBookingLog();
             const logged = await logFlightBooking(log);
@@ -595,15 +600,6 @@ export default function CheckoutPage(props){
         SET_PRICES({...PRICES});
     }
 
-    const getTotalDefaultFees = () => {
-        const FEES=CONSTANTS.customer_fees.flight_order.defaults;
-        let total=0;
-        for(let i=0; i<FEES.length; i++){
-            total+=FEES[i].total;
-        }
-        return total;
-    }
-
     const addServiceToPrices = (_name, _qunatity, _total) => {
         PRICES.extras.push({
             name: _name,
@@ -670,10 +666,27 @@ export default function CheckoutPage(props){
         color: "rgba(0,0,0,0.2)"
     }
 
+    const IS_DEBUG = false;
     console.log("checkout payload:", checkoutPayload);
 
     return (
         <div id="booking_start_checkout_page_container" className="flight_checkout_popup_cover_container" style={{display: "block"}}>
+            {    
+                IS_DEBUG &&
+                <div style={{backgroundColor: "crimson", position: "fixed", bottom: 0, left: 0, width: "100vw", zIndex: 3000, padding: 20}}>
+                    <div className="wrapper">
+                        <p style={{color: "white", fontSize: 13, marginBottom: 20}}>
+                            De Bug Console:</p>
+                        <p style={{color: "white", fontSize: 13}}>
+                            <i style={{marginRight: 10, color: "lightgreen"}}
+                                className="fa-solid fa-info-circle"></i>
+                            data: {
+                                JSON.stringify({})
+                            }
+                        </p>
+                    </div>
+                </div>
+            }
             {
                 isLoading && <FullPageLoader />
             }

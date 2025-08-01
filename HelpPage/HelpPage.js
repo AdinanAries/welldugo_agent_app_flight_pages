@@ -9,13 +9,14 @@ function HelpPage(){
     return(
         <main id="help_page" style={{display: "none"}}>
             <div className="wrapper">
-                <div style={{padding: "40px 5px"}}>
-                    <p style={{marginLeft: 20, fontSize: 30, fontWeight: "bolder", color: "rgba(0,0,0,0.8)"}}>Help and Support</p>
+                <div style={{padding: "40px 20px"}}>
+                    <p style={{fontSize: 30, fontWeight: "bolder", color: "rgba(0,0,0,0.8)"}}>
+                        Help and Support</p>
                     <div style={{display: "none"}}>
                         <NotLoggedIn msg={"You must login to see your trips"}/>
                     </div>
                     <div style={{marginTop: 20}}>
-                        <div style={{width: 200, height: 200, backgroundImage: `url(${support_page_support_icon})`, backgroundSize: "contain", backgroundRepeat: "no-repeat"}}>
+                        <div style={{width: 200, height: 200, marginBottom: 20, backgroundImage: `url(${support_page_support_icon})`, backgroundSize: "contain", backgroundRepeat: "no-repeat"}}>
                         </div>
                         <p style={{color: "rgba(0,0,0,0.7)", fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif"}}>Pick your Channel</p>
                         <div style={{display: "flex", flexDirection: "row", padding: "20px 0"}}>
@@ -35,8 +36,8 @@ function HelpPage(){
                             </a>
                             <div id="main_supportpage_start_support_btn" style={{cursor: "pointer", backgroundColor: "rgba(122,112,21)", padding: 20, borderRadius: 50, boxShadow: "0 0 5px rgba(0,0,0,0.5)"}}>
                                 <p style={{fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif", color: 'white', letterSpacing: 1, fontSize: 14}}>
-                                    <i style={{marginRight: 10}} className="fa fa-comment"></i>
-                                    Chat</p>
+                                    <i style={{marginRight: 10}} className="fa-solid fa-ticket"></i>
+                                    Send Ticket</p>
                             </div>
                         </div>
                         <div style={{marginTop: 10, backgroundColor: "white", padding: 15, borderRadius: 5, border: "1px solid rgba(0,0,0,0.1)"}}>
