@@ -36,7 +36,7 @@ function UserAccountPage(props){
     let [ editGender, setEditGender ] = useState(false);
 
     const logoutOnclick = () => {
-        //LogMeOut();
+        LogMeOut();
     }
 
     useEffect(() => {
