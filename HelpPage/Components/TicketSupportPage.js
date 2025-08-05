@@ -696,7 +696,7 @@ const TicketSupportPage = (props) => {
         </div>
         {
             minimzeEditor &&
-            <div  onClick={()=>setMinimzeEditor(false)} style={{position: "fixed", bottom: 10, left: 10, width: 40, height: 40, borderRadius: 8, backgroundColor: "black", cursor: "pointer", boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", display: "flex", justifyContent: "center", alignItems: "center", border: "2px solid rgba(255,255,255,0.2)"}}>
+            <div  onClick={()=>setMinimzeEditor(false)} style={{position: "fixed", zIndex: 3, bottom: 10, left: 10, width: 40, height: 40, borderRadius: 8, backgroundColor: "black", cursor: "pointer", boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", display: "flex", justifyContent: "center", alignItems: "center", border: "2px solid rgba(255,255,255,0.2)"}}>
                 <i style={{color: "rgba(255,255,255,0.6)"}} className="fa-solid fa-keyboard"></i>
             </div>
         }

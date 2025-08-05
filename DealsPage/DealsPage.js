@@ -24,6 +24,7 @@ import {
 import { toast } from 'react-toastify';
 import PackageConfirmationEmailMarkup from '../../helpers/PackageConfirmationEmailMarkup';
 import Logger, { getBookingConfirmedLogMessage } from '../../helpers/Logger';
+import ItineraryPreviewer from './Components/ItineraryPreviewer';
 
 const stripePromise = loadStripe('pk_test_51OdjZ3An0YMgH2TtyCpkCBN4vDrMuQlwvmFSNKqBl9gJY996OXSpZ9QLz5dBGHLYLsa7QVvwY51I0DcLHErLxW7y00vjEWv9Lc');
 
@@ -110,6 +111,7 @@ function DealsPage(props){
     const [ pageFilters, setPageFilters ] = useState({
         // Filters yet to be defined
     });
+    const [ isItinPage, setIsItinPage ] = useState(false);
 
     let agent_id="";
     if(localStorage.getItem("agent")){
@@ -117,6 +119,16 @@ function DealsPage(props){
     }
 
     const API_HOST=getApiHost();
+
+    useEffect(()=>{
+        // Setting Page for either Itinerary or Package view!
+        const params = new URLSearchParams(window.location.search);
+        if(params.has("view_itin")){
+            if(JSON.parse(params.get("view_itin"))){
+                setIsItinPage(true);
+            }
+        }
+    }, []);
 
     useEffect(()=>{
         if(currentStage===__STAGES?.payment){
@@ -522,181 +534,187 @@ function DealsPage(props){
                 (errorCode===ERROR_CODES?.agent_not_found) &&
                 <AgentNotFoundHeader />
             }
-            <div className="wrapper">
-                <div>
-                    {
-                        (!selectedPackageDeal?._id && dealsList?.length < 1) &&
-                        <p style={{marginLeft: 20, fontSize: 30, marginTop: 40, fontWeight: "bolder", color: "rgba(0,0,0,0.8)"}}>
-                            Deals</p>
-                    }
-                    <div style={{display: "none"}}>
-                        <NotLoggedIn msg={"You must login to see your trips"}/>
-                    </div>
+            {
+                isItinPage ?
+                <ItineraryPreviewer 
+                
+                /> :
+                <div className="wrapper">
                     <div>
-                        {(isLoading || isError) && 
-                            <div style={{width: 200, height: 200, backgroundImage: `url(${deals_page_icon})`, backgroundSize: "contain", backgroundRepeat: "no-repeat"}}>
-                            </div>
-                        }
-                        {isLoading && <Waiting />}
-                        { (!isLoading && isError) &&
-                            <div style={{marginTop: 10, backgroundColor: "white", padding: 15, marginBottom: 40, borderRadius: 5, border: "1px solid rgba(0,0,0,0.1)"}}>
-                                <p style={{color: 'rgba(0,0,0,0.7)', marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(0,0,0,0.1)"}}>
-                                    <i className="fa fa-exclamation-triangle" style={{color: "orangered", marginRight: 10, textShadow: "1px 2px 3px rgba(0,0,0,0.33)"}}></i>
-                                    Oops something went wrong</p>
-                                <p style={{color: "rgba(0,0,0,0.7)", fontSize: 15}}>
-                                    {errorMessage}
-                                </p>
-                            </div>
-                        }
-                        {   (!isLoading && !isError && dealsList.length>0) &&
-                            <DealList 
-                                deals={dealsList}
-                                PAGI_LIMIT={PAGI_LIMIT}
-                                totalItems={totalItems}
-                                setpagiCurrentPage={setpagiCurrentPage}
-                                pagiCurrentPage={pagiCurrentPage}
-                            />
-                        }
                         {
-                            (!isLoading && !isError && selectedPackageDeal?._id) &&
-                            <div className="checkout_page_all_info_flex_container" style={{justifyContent: "center"}}>
-                                <div className="checkout_page_all_info_flex_left" >
-                                    <div style={{display: "flex", padding: 20, backgroundColor: "#eee", alignItems: "center"}}>
-                                        <p style={{fontSize: 13, color: (currentStage > -1) ? "black" : "rgba(0,0,0,0.5)"}}>
-                                            {
-                                                currentStage > -1 &&
-                                                <i style={{marginRight: 5, color: "green"}}
-                                                    className="fa-solid fa-circle-check"></i>
-                                            }
-                                            Preview</p>
-                                        <p style={{fontSize: 13, color: "rgba(0,0,0,0.2)", margin: "0 20px"}}>
-                                            <i className="fa-solid fa-angles-right"></i></p>
-                                        <p style={{fontSize: 13, color: (currentStage > __STAGES?.preview) ? "black" : "rgba(0,0,0,0.5)"}}>
-                                            {
-                                                currentStage > __STAGES?.preview &&
-                                                <i style={{marginRight: 5, color: "green"}}
-                                                    className="fa-solid fa-circle-check"></i>
-                                            }
-                                            Passengers</p>
-                                        <p style={{fontSize: 13, color: "rgba(0,0,0,0.2)", margin: "0 20px"}}>
-                                            <i className="fa-solid fa-angles-right"></i></p>
-                                        <p style={{fontSize: 13, color: (currentStage > __STAGES?.pnr) ? "black" : "rgba(0,0,0,0.5)"}}>
-                                            {
-                                                currentStage > __STAGES?.pnr &&
-                                                <i style={{marginRight: 5, color: "green"}}
-                                                    className="fa-solid fa-circle-check"></i>
-                                            }
-                                            Checkout</p>
-                                    </div>
-                                    {
-                                        currentStage===__STAGES?.preview &&
-                                        <ViewPackageDealDetails
-                                            data={selectedPackageDeal} 
-                                        />
-                                    }
-                                    {
-                                        currentStage===__STAGES?.pnr &&
-                                        <div style={{backgroundColor: "white", padding: 10, minHeight: "100vh"}}>
-                                            <CustomerForms 
-                                                prices={{
-                                                    total_amount: 1200,
-                                                    extras: []
-                                                }}
-                                                bookingEngine={bookingEngine}
-                                                setResponsibleAdultForInfant={setResponsibleAdultForInfant}
-                                                savePassengerInfo={savePassengerInfo}
-                                                passengers={passengers}
-                                                resetCheckoutConfirmation={resetCheckoutConfirmation}
-                                                hasNewMessageFromParent={hasNewMessageFromParent}
-                                                currentParentMessge={currentParentMessge}
-                                            />
+                            (!selectedPackageDeal?._id && dealsList?.length < 1) &&
+                            <p style={{marginLeft: 20, fontSize: 30, marginTop: 40, fontWeight: "bolder", color: "rgba(0,0,0,0.8)"}}>
+                                Deals</p>
+                        }
+                        <div style={{display: "none"}}>
+                            <NotLoggedIn msg={"You must login to see your trips"}/>
+                        </div>
+                        <div>
+                            {(isLoading || isError) && 
+                                <div style={{width: 200, height: 200, backgroundImage: `url(${deals_page_icon})`, backgroundSize: "contain", backgroundRepeat: "no-repeat"}}>
+                                </div>
+                            }
+                            {isLoading && <Waiting />}
+                            { (!isLoading && isError) &&
+                                <div style={{marginTop: 10, backgroundColor: "white", padding: 15, marginBottom: 40, borderRadius: 5, border: "1px solid rgba(0,0,0,0.1)"}}>
+                                    <p style={{color: 'rgba(0,0,0,0.7)', marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(0,0,0,0.1)"}}>
+                                        <i className="fa fa-exclamation-triangle" style={{color: "orangered", marginRight: 10, textShadow: "1px 2px 3px rgba(0,0,0,0.33)"}}></i>
+                                        Oops something went wrong</p>
+                                    <p style={{color: "rgba(0,0,0,0.7)", fontSize: 15}}>
+                                        {errorMessage}
+                                    </p>
+                                </div>
+                            }
+                            {   (!isLoading && !isError && dealsList.length>0) &&
+                                <DealList 
+                                    deals={dealsList}
+                                    PAGI_LIMIT={PAGI_LIMIT}
+                                    totalItems={totalItems}
+                                    setpagiCurrentPage={setpagiCurrentPage}
+                                    pagiCurrentPage={pagiCurrentPage}
+                                />
+                            }
+                            {
+                                (!isLoading && !isError && selectedPackageDeal?._id) &&
+                                <div className="checkout_page_all_info_flex_container" style={{justifyContent: "center"}}>
+                                    <div className="checkout_page_all_info_flex_left" >
+                                        <div style={{display: "flex", padding: 20, backgroundColor: "#eee", alignItems: "center"}}>
+                                            <p style={{fontSize: 13, color: (currentStage > -1) ? "black" : "rgba(0,0,0,0.5)"}}>
+                                                {
+                                                    currentStage > -1 &&
+                                                    <i style={{marginRight: 5, color: "green"}}
+                                                        className="fa-solid fa-circle-check"></i>
+                                                }
+                                                Preview</p>
+                                            <p style={{fontSize: 13, color: "rgba(0,0,0,0.2)", margin: "0 20px"}}>
+                                                <i className="fa-solid fa-angles-right"></i></p>
+                                            <p style={{fontSize: 13, color: (currentStage > __STAGES?.preview) ? "black" : "rgba(0,0,0,0.5)"}}>
+                                                {
+                                                    currentStage > __STAGES?.preview &&
+                                                    <i style={{marginRight: 5, color: "green"}}
+                                                        className="fa-solid fa-circle-check"></i>
+                                                }
+                                                Passengers</p>
+                                            <p style={{fontSize: 13, color: "rgba(0,0,0,0.2)", margin: "0 20px"}}>
+                                                <i className="fa-solid fa-angles-right"></i></p>
+                                            <p style={{fontSize: 13, color: (currentStage > __STAGES?.pnr) ? "black" : "rgba(0,0,0,0.5)"}}>
+                                                {
+                                                    currentStage > __STAGES?.pnr &&
+                                                    <i style={{marginRight: 5, color: "green"}}
+                                                        className="fa-solid fa-circle-check"></i>
+                                                }
+                                                Checkout</p>
                                         </div>
-                                    }
-                                    {
-                                        currentStage===__STAGES?.payment &&
-                                        <div style={{backgroundColor: "white", padding: 10, minHeight: "100vh"}}>
-                                            {
-                                                (options?.clientSecret) &&
-                                                <Elements stripe={stripePromise} options={options}>
-                                                    <PaymentPage 
-                                                        loadingStages={stage}
-                                                        createOrderOnSubmit={createOrderOnSubmit}
-                                                        startProcessingPayment={startProcessingPayment}
-                                                        startProcessingBookingOrderError={startProcessingBookingOrderError}
-                                                        checkoutConfirmation={checkoutConfirmation}
-                                                        setCheckoutConfirmation={setCheckoutConfirmation}
-                                                        selectedPackageDeal={selectedPackageDeal}
-                                                        paymentIntent={paymentIntent}
-                                                        setPaymentIntent={setPaymentIntent}
-                                                        bookingIntent={bookingIntent}
-                                                        bookingEngine={bookingEngine}
-                                                        setBookingIntent={setBookingIntent}
-                                                        setOptions={setOptions}
-                                                        options={options}
-                                                    />
-                                                </Elements>
-                                            }
-                                            {
-                                                !selectedPackageDeal?.total_price &&
-                                                <div>
-                                                    <div style={{padding: 20, marginBottom: 10, backgroundColor: "black"}}>
-                                                        <p style={{color: "white", fontSize: 13}}>
-                                                            <i style={{marginRight: 10, color: "yellow"}}
-                                                                className='fa-solid fa-exclamation-triangle'></i>
-                                                            No price information available!
-                                                        </p>
-                                                    </div>
-                                                    <div style={{padding: 10, borderTop: "1px solid rgba(0,0,0,0.1)"}}>
-                                                        <p  style={{marginBottom: 8, color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sanserif", fontWeight: "bolder", fontSize: 13}}>
-                                                            Emergency Contact</p>
-                                                        <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
-                                                            Call: <span style={{letterSpacing: 1, color: "green",fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
-                                                                +1 7327999546 </span>
-                                                        </p>
-                                                        <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
-                                                            Email: <span style={{letterSpacing: 1, color: "green",fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
-                                                            adinanaries@outlook.com </span>
-                                                        </p>
-                                                        <div style={{display: "flex", alignItems: "center", marginTop: 10}}>
-                                                            <div style={{marginRight: 10, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "100%", minWidth: 57, height: 57, backgroundColor: "rgba(0,0,0,0.1)", border: "1px solid rgba(0,0,0,0.1)"}}>
-                                                                <div>
-                                                                    <p style={{textAlign: "center", fontSize: 22, marginTop: -5}}>
-                                                                        <i style={{color: "rgba(0,0,0,0.7)"}} className="fa-solid fa-robot"></i>
-                                                                    </p>
-                                                                    <p style={{fontSize: 9, fontFamily: "'Prompt', Sanserif"}}>
-                                                                        Bot AD</p>
-                                                                </div>
-                                                            </div>
-                                                            <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
-                                                                Hey! we're with you every step of the way. Please reach out...
+                                        {
+                                            currentStage===__STAGES?.preview &&
+                                            <ViewPackageDealDetails
+                                                data={selectedPackageDeal} 
+                                            />
+                                        }
+                                        {
+                                            currentStage===__STAGES?.pnr &&
+                                            <div style={{backgroundColor: "white", padding: 10, minHeight: "100vh"}}>
+                                                <CustomerForms 
+                                                    prices={{
+                                                        total_amount: 1200,
+                                                        extras: []
+                                                    }}
+                                                    bookingEngine={bookingEngine}
+                                                    setResponsibleAdultForInfant={setResponsibleAdultForInfant}
+                                                    savePassengerInfo={savePassengerInfo}
+                                                    passengers={passengers}
+                                                    resetCheckoutConfirmation={resetCheckoutConfirmation}
+                                                    hasNewMessageFromParent={hasNewMessageFromParent}
+                                                    currentParentMessge={currentParentMessge}
+                                                />
+                                            </div>
+                                        }
+                                        {
+                                            currentStage===__STAGES?.payment &&
+                                            <div style={{backgroundColor: "white", padding: 10, minHeight: "100vh"}}>
+                                                {
+                                                    (options?.clientSecret) &&
+                                                    <Elements stripe={stripePromise} options={options}>
+                                                        <PaymentPage 
+                                                            loadingStages={stage}
+                                                            createOrderOnSubmit={createOrderOnSubmit}
+                                                            startProcessingPayment={startProcessingPayment}
+                                                            startProcessingBookingOrderError={startProcessingBookingOrderError}
+                                                            checkoutConfirmation={checkoutConfirmation}
+                                                            setCheckoutConfirmation={setCheckoutConfirmation}
+                                                            selectedPackageDeal={selectedPackageDeal}
+                                                            paymentIntent={paymentIntent}
+                                                            setPaymentIntent={setPaymentIntent}
+                                                            bookingIntent={bookingIntent}
+                                                            bookingEngine={bookingEngine}
+                                                            setBookingIntent={setBookingIntent}
+                                                            setOptions={setOptions}
+                                                            options={options}
+                                                        />
+                                                    </Elements>
+                                                }
+                                                {
+                                                    !selectedPackageDeal?.total_price &&
+                                                    <div>
+                                                        <div style={{padding: 20, marginBottom: 10, backgroundColor: "black"}}>
+                                                            <p style={{color: "white", fontSize: 13}}>
+                                                                <i style={{marginRight: 10, color: "yellow"}}
+                                                                    className='fa-solid fa-exclamation-triangle'></i>
+                                                                No price information available!
                                                             </p>
                                                         </div>
+                                                        <div style={{padding: 10, borderTop: "1px solid rgba(0,0,0,0.1)"}}>
+                                                            <p  style={{marginBottom: 8, color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sanserif", fontWeight: "bolder", fontSize: 13}}>
+                                                                Emergency Contact</p>
+                                                            <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                                Call: <span style={{letterSpacing: 1, color: "green",fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                                    +1 7327999546 </span>
+                                                            </p>
+                                                            <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                                Email: <span style={{letterSpacing: 1, color: "green",fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                                adinanaries@outlook.com </span>
+                                                            </p>
+                                                            <div style={{display: "flex", alignItems: "center", marginTop: 10}}>
+                                                                <div style={{marginRight: 10, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "100%", minWidth: 57, height: 57, backgroundColor: "rgba(0,0,0,0.1)", border: "1px solid rgba(0,0,0,0.1)"}}>
+                                                                    <div>
+                                                                        <p style={{textAlign: "center", fontSize: 22, marginTop: -5}}>
+                                                                            <i style={{color: "rgba(0,0,0,0.7)"}} className="fa-solid fa-robot"></i>
+                                                                        </p>
+                                                                        <p style={{fontSize: 9, fontFamily: "'Prompt', Sanserif"}}>
+                                                                            Bot AD</p>
+                                                                    </div>
+                                                                </div>
+                                                                <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                                                                    Hey! we're with you every step of the way. Please reach out...
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            }
-                                        </div>
-                                    }
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                    <div className="checkout_page_all_info_flex_right" style={{backgroundColor: "#eee", borderLeft: "1px solid rgba(0,0,0,0.1)"}}>
+                                        <PriceSummary 
+                                            prices={prices}
+                                            bookingEngine={bookingEngine}
+                                            buttonFunction={__NEXT_STAGE_FUNCTION}
+                                            backButtonFunction={__PREVIOUS_STAGE_FUNCTION}
+                                            buttonText={stageNextButtonText}
+                                            total_travelers={(parseInt(selectedPackageDeal?.max_num_of_adults)
+                                                            +parseInt(selectedPackageDeal?.max_num_of_children)
+                                                            +parseInt(selectedPackageDeal?.max_num_of_infants))}
+                                            disregard_markup={true}
+                                            item_type={"Package"}
+                                            isPaymentPage={(currentStage===__STAGES?.payment)}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="checkout_page_all_info_flex_right" style={{backgroundColor: "#eee", borderLeft: "1px solid rgba(0,0,0,0.1)"}}>
-                                    <PriceSummary 
-                                        prices={prices}
-                                        bookingEngine={bookingEngine}
-                                        buttonFunction={__NEXT_STAGE_FUNCTION}
-                                        backButtonFunction={__PREVIOUS_STAGE_FUNCTION}
-                                        buttonText={stageNextButtonText}
-                                        total_travelers={(parseInt(selectedPackageDeal?.max_num_of_adults)
-                                                        +parseInt(selectedPackageDeal?.max_num_of_children)
-                                                        +parseInt(selectedPackageDeal?.max_num_of_infants))}
-                                        disregard_markup={true}
-                                        item_type={"Package"}
-                                        isPaymentPage={(currentStage===__STAGES?.payment)}
-                                    />
-                                </div>
-                            </div>
-                        }
+                            }
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </main>
     );
 }
