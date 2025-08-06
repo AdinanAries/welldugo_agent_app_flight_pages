@@ -61,7 +61,7 @@ const ItineraryPreviewer = (props) => {
     }
 
 
-    return <div className="wrapper" style={{backgroundColor: "white"}}>
+    return <div className="wrapper">
         {
             isLoggedIn ?
             <p style={{backgroundColor: "green", color: "white", fontSize: 13, padding: 10}}>
