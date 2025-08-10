@@ -5,34 +5,30 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment);
 
-function WDGCalendar() {
+function WDGCalendar(props) {
+
+  const {
+    calendarEvents,
+  } = props;
+
   const [events, setEvents] = useState([]);
 
   // In a real application, you would fetch events from an API or Google Calendar API
   useEffect(() => {
-    setEvents([
-      {
-        title: 'Meeting with Team',
-        start: new Date(2025, 7, 6, 10, 0), // Year, Month (0-indexed), Day, Hour, Minute
-        end: new Date(2025, 7, 6, 11, 0),
-      },
-      {
-        title: 'Project Deadline',
-        start: new Date(2025, 7, 8, 14, 0),
-        end: new Date(2025, 7, 8, 16, 0),
-      },
-    ]);
+    setEvents(calendarEvents);
   }, []);
 
   return (
-    <div style={{ height: "calc(100vh - 60px)" }}>
+    <div style={{height: 1200}}>
       <Calendar
         localizer={localizer}
         events={events}
         startAccessor="start"
         endAccessor="end"
-        defaultView="day" // or "week", "month", "day", "agenda"
-        style={{ margin: '5px' }}
+        defaultView="month" // or "week", "month", "day", "agenda"
+        selectable
+        onSelectEvent={(event) => alert(`${event.title} - From ${event.start} to ${event.end}`)}
+        style={{ margin: '0' }}
       />
     </div>
   );

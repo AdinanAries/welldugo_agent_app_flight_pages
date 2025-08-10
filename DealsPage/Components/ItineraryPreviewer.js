@@ -61,10 +61,10 @@ const ItineraryPreviewer = (props) => {
     }
 
 
-    return <div className="wrapper">
+    return <div>
         {
             isLoggedIn ?
-            <p style={{backgroundColor: "green", color: "white", fontSize: 13, padding: 10}}>
+            <p style={{display: "none", backgroundColor: "green", color: "white", fontSize: 13, padding: 10}}>
                 <i style={{color: "yellow", marginRight: 10}} className="fa-solid fa-info"></i>
                 You're Logged in!
             </p> :
@@ -75,7 +75,7 @@ const ItineraryPreviewer = (props) => {
         }
         {
             !isLoggedIn ? 
-            <div>
+            <div className="wrapper">
                 <LoginForm 
                     isLoggedIn={isLoggedIn} 
                     isShowSignUpForm={isShowSignUpForm}
@@ -104,7 +104,9 @@ const ItineraryPreviewer = (props) => {
                 {
                     (currentPage!==_SUB_PAGES?.view_list && selectedItinerary?._id) &&
                     <SelectedItinerary 
+                        userDetails={user}
                         itinerary={selectedItinerary}
+                        setItinerary={setSelectedItinerary}
                     />
                 }
             </>
