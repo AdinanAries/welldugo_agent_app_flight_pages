@@ -48,13 +48,13 @@ const CheckoutForm = (props) => {
       });
 
       if (result?.error) {
-      await startProcessingBookingOrderError();
-      setCheckoutConfirmation({
-          type: "server_error",
-          isError: true,
-          message: result?.error?.message,
-      });
-      return;
+        await startProcessingBookingOrderError();
+        setCheckoutConfirmation({
+            type: "server_error",
+            isError: true,
+            message: result?.error?.message,
+        });
+        return;
       } else if (result?.paymentIntent && result?.paymentIntent?.status === "requires_capture"){
         // Updating booking intent with new payment status
         bookingIntent.payment_intent = result?.paymentIntent;
@@ -110,7 +110,7 @@ const CheckoutForm = (props) => {
                   <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", padding: "0 5px", margin: 5, backgroundColor: "crimson", color: "white"}}>
                     "{checkoutConfirmation.message}".</span>
                   <b/>
-                    Please go back one step and check your passenger details by clicking on 
+                    If the error message is related to passenger details, please go back one step and check your passenger details by clicking on 
                     <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", padding: "0 5px", margin: 5, backgroundColor: "crimson", color: "white"}}>
                       "Passengers"</span> at the top.
                   <b/> Then open the passenger forms to confirm their details are correct

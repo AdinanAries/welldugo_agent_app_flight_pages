@@ -91,32 +91,56 @@ const PaymentPage = (props) => {
         ((paymentIntent?.id && paymentIntent?.status==="requires_capture") && 
         (loadingStages?.percentage===0 || loadingStages?.percentage===100)) &&
         <div style={{padding: 10, border: "1px solid rgba(0,255,0,0.1)", background: "rgba(0,255,0,0.1)"}}>
-        <div>
-            <div style={{display: "flex"}}>
-            <p style={{fontSize: 12}}> 
-                <i style={{fontSize: 12, marginRight: 10, color: "green"}} className="fa-solid fa-info"></i>
-            </p>
-            <p style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
-                <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
-                Important Notice:</span> We 
-                have not charged you anything! However, your payment details have been captured. You only need to re-submit the order to comfirm the booking.
-            </p>
-            </div>
-            { checkoutConfirmation?.isError &&
-            <div style={{marginTop: 10, borderTop: "1px dashed rgba(0,0,0,0.1)", paddingTop: 10}}>
-                <p style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
-                The server returned the following error message: 
-                <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", padding: "0 5px", margin: 5, backgroundColor: "crimson", color: "white"}}>
-                    "{checkoutConfirmation.message}".</span>
-                <b/>
-                    Please go back one step and check your passenger details by clicking on 
-                    <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", padding: "0 5px", margin: 5, backgroundColor: "crimson", color: "white"}}>
-                    "Passengers"</span> at the top.
-                <b/> Then open the passenger forms to confirm their details are correct
+            <div>
+                <div style={{display: "flex"}}>
+                <p style={{fontSize: 12}}> 
+                    <i style={{fontSize: 12, marginRight: 10, color: "green"}} className="fa-solid fa-info"></i>
                 </p>
+                <p style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
+                    <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
+                    Important Notice:</span> We 
+                    have not charged you anything! However, your payment details have been captured. You only need to re-submit the order to comfirm the booking.
+                </p>
+                </div>
+                { checkoutConfirmation?.isError &&
+                <div style={{marginTop: 10, borderTop: "1px dashed rgba(0,0,0,0.1)", paddingTop: 10}}>
+                    <p style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
+                    The server returned the following error message: 
+                    <span style={{fontSize: 12, fontFamily: "'Prompt', Sans-serif", padding: "0 5px", margin: 5, backgroundColor: "crimson", color: "white"}}>
+                        "{checkoutConfirmation.message}".</span>
+                    <b/>
+                        If the error message is related to passenger details, please go back one step and check your passenger details.
+                    <b/> Then open the passenger forms to confirm their details are correct
+                    </p>
+                </div>
+                }
             </div>
-            }
-        </div>
+            <div style={{padding: 10, marginTop: 10, borderTop: "1px dashed rgba(0,0,0,0.1)"}}>
+                <p  style={{marginBottom: 8, color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sanserif", fontWeight: "bolder", fontSize: 13}}>
+                    Emergency Contact</p>
+                <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                    Call: <span style={{letterSpacing: 1, color: "green",fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                        +1 7327999546 </span>
+                </p>
+                <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                    Email: <span style={{letterSpacing: 1, color: "green",fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                    adinanaries@outlook.com </span>
+                </p>
+                <div style={{display: "flex", alignItems: "center", marginTop: 10}}>
+                    <div style={{marginRight: 10, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "100%", minWidth: 57, height: 57, backgroundColor: "rgba(0,0,0,0.1)", border: "1px solid rgba(0,0,0,0.1)"}}>
+                        <div>
+                            <p style={{textAlign: "center", fontSize: 22, marginTop: -5}}>
+                                <i style={{color: "rgba(0,0,0,0.7)"}} className="fa-solid fa-robot"></i>
+                            </p>
+                            <p style={{fontSize: 9, fontFamily: "'Prompt', Sanserif"}}>
+                                Bot AD</p>
+                        </div>
+                    </div>
+                    <p style={{fontFamily: "'Prompt', Sanserif", fontSize: 13}}>
+                        Hey! we're with you every step of the way. Please reach out...
+                    </p>
+                </div>
+            </div>
         </div>
       }
       <button className='checkout_page_main_checkout_btn'

@@ -190,8 +190,8 @@ const ViewPackageDealDetails = (props) => {
                                     if(each[key]){
                                         let _key = key?.replaceAll("_", " ");
                                         _key = (_key[0].toUpperCase() + _key.substring(1))
-                                        individual_fields_info.push(<span>
-                                            <span style={{color: "rgba(0,0,0,0.8)"}}>
+                                        individual_fields_info.push(<span style={{fontSize: 13}}>
+                                            <span style={{color: "rgba(0,0,0,0.8)", fontSize: 13}}>
                                                 {_key}:{" "}
                                             </span>
                                             {__value}
@@ -201,10 +201,10 @@ const ViewPackageDealDetails = (props) => {
                                 }
                             }
                             if(!_flip){
-                                return <div style={{marginTop: 20, display: "flex"}}>
-                                    <div style={{width: "250px", backgroundImage: `url(${_image_url})`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center"}}>
+                                return <div className="highlighter-package-previewer-item-section" style={{marginTop: 20, display: "flex"}}>
+                                    <div className="highlighter-package-previewer-item-section-img" style={{width: 250, maxHeight: 250, backgroundImage: `url(${_image_url})`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center"}}>
                                     </div>
-                                    <div style={{width: "calc(100% - 230px)", margin: 10, marginRight: 0, padding: 10, marginLeft: -20, background: __THEME_COLORS[view_theme]?.primary}}>
+                                    <div className="highlighter-package-previewer-item-section-info" style={{width: "calc(100% - 230px)", margin: 10, marginRight: 0, padding: 10, marginLeft: -20, background: __THEME_COLORS[view_theme]?.primary}}>
                                         <h3 style={{marginBottom: 10}}>
                                             {name}s:</h3>
                                         <p style={{marginBottom: 10, fontSize: 13, marginRight: -15, backgroundColor: __THEME_COLORS[view_theme]?.secondary, padding: 10}}>
@@ -226,8 +226,8 @@ const ViewPackageDealDetails = (props) => {
                                     </div>
                                 </div>
                             }else{
-                                return <div style={{marginTop: 20, display: "flex"}}>
-                                    <div style={{width: "calc(100% - 230px)", zIndex: 2, margin: 10, marginLeft: 0, padding: 10, marginRight: -20, background: __THEME_COLORS[view_theme]?.primary}}>
+                                return <div className="highlighter-package-previewer-item-section second" style={{marginTop: 20, display: "flex"}}>
+                                    <div className="highlighter-package-previewer-item-section-info second" style={{width: "calc(100% - 230px)", zIndex: 2, margin: 10, marginLeft: 0, padding: 10, marginRight: -20, background: __THEME_COLORS[view_theme]?.primary}}>
                                         <h3 style={{marginBottom: 10}}>
                                             {name}s:</h3>
                                         <p style={{marginBottom: 10, fontSize: 13, marginLeft: -15, backgroundColor: __THEME_COLORS[view_theme]?.secondary, padding: 10}}>
@@ -247,7 +247,7 @@ const ViewPackageDealDetails = (props) => {
                                             </>
                                         }
                                     </div>
-                                    <div style={{width: "250px", backgroundImage: `url('https://welldugo-oc-53db16692066.herokuapp.com/static/media/news-letter-bg1.f922fef0.jpg')`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center"}}>
+                                    <div className="highlighter-package-previewer-item-section-img second" style={{width: 250, maxHeight: 250, backgroundImage: `url('https://welldugo-oc-53db16692066.herokuapp.com/static/media/news-letter-bg1.f922fef0.jpg')`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center"}}>
                                     </div>
                                 </div>
                             }

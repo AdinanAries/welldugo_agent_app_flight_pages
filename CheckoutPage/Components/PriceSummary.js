@@ -217,7 +217,7 @@ const PriceSummary = (props) => {
                 </div>
                 <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                     <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.7)"}}>
-                        Taxes and fees
+                        Taxes
                     </p>
                     <p style={{fontSize: 14, letterSpacing: 1, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}}>
                         {

@@ -25,6 +25,7 @@ import FlightConfirmationEmailMarkup from "../../helpers/FlightConfirmationEmail
 import { fetchAgentPriceMarkupInfo } from '../../services/agentServices';
 import { saveBookedItineraryItem } from '../../services/agentServices';
 import { getTotalDefaultFees } from '../../helpers/Prices';
+import SubmitCheckoutInProgress from '../../components/SubmitCheckoutInProgress';
 
 let INCLUDED_CHECKED_BAGS_EACH_PSNGR_QUANTITY = {};
 export default function CheckoutPage(props){
@@ -866,29 +867,3 @@ export default function CheckoutPage(props){
     );
 }
 
-const SubmitCheckoutInProgress = (props) => {
-
-    const { stage, setStage, endCheckoutProcessing } = props;
-
-    return <div style={{position: "fixed", zIndex: 1001, top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.3)"}}>
-        <div style={{width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}}>
-            <div style={{padding: "20px", backgroundColor: "white", borderRadius: 8}}>
-                <p style={{fontSize: 13, fontFamily: "'Prompt', Sans-serif", marginBottom: 10}}>
-                    {stage.percentage}% {stage.message}
-                </p>
-                <div style={{width: 300, background: "rgba(0,0,0,0.1)", borderRadius: 8, overflow: "hidden"}}>
-                    <div style={{backgroundColor: ((stage.step.toLowerCase()==="error") ? "crimson" : "green"), width: (stage.percentage+"%"), padding: 5}}></div>
-                </div>
-                {
-                    (stage.percentage===100) &&
-                    <div onClick={endCheckoutProcessing}
-                        style={{cursor: "pointer", boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", textAlign: "center", fontFamily: "'Prompt', Sans-serif", fontSize: 14, padding: "10px 20px", marginTop: 15, borderRadius: 50,
-                        backgroundColor: ((stage.step.toLowerCase()==="error") ? "crimson" : "green"), color: "white"}}>
-                        <i style={{marginRight: 10}}
-                            className={((stage.step.toLowerCase()==="error") ? "fa-solid fa-times" : "fa-solid fa-check")}></i>
-                        {(stage.step.toLowerCase()==="error") ? "Close" : "Done"}</div>
-                }
-            </div>
-        </div>
-    </div>
-}
