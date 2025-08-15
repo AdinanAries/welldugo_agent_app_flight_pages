@@ -10,6 +10,8 @@ const CustomerForms = (props) => {
         savePassengerInfo,
         setResponsibleAdultForInfant,
         bookingEngine,
+        removeCustomer,
+        addCustomer,
     } = props;
     
     return <div>
@@ -23,6 +25,8 @@ const CustomerForms = (props) => {
             resetCheckoutConfirmation={resetCheckoutConfirmation}
             hasNewMessageFromParent={hasNewMessageFromParent}
             currentParentMessge={currentParentMessge}
+            removeCustomer={removeCustomer}
+            addCustomer={addCustomer}
         />
     </div>
 }

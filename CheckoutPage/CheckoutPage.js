@@ -351,6 +351,7 @@ export default function CheckoutPage(props){
                     
                 let bookingItent = {
                     oc_user_id: agent_id,
+                    product_type: "flight",
                     payment_intent: pi,
                     booking_order: checkoutPayload,
                 }

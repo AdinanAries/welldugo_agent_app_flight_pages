@@ -19,11 +19,12 @@ import AgentNotFoundHeader from '../../components/AgentNotFoundHeader';
 import PriceSummary from '../CheckoutPage/Components/PriceSummary';
 import CustomerForms from './Components/CustomerForms';
 import PaymentPage from './Components/PaymentPage';
-import {Elements} from '@stripe/react-stripe-js';
-import {loadStripe} from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { 
     calculate_age,
     obj_has_empty_prop,
+    has_atleast_adult_customer,
 } from '../../helpers/general';
 import { toast } from 'react-toastify';
 import PackageConfirmationEmailMarkup from '../../helpers/PackageConfirmationEmailMarkup';
@@ -33,6 +34,7 @@ import {
     fetchProductSpecificServiceFeesByAgentId,
 } from '../../services/agentServices';
 import SubmitCheckoutInProgress from '../../components/SubmitCheckoutInProgress';
+import ConfirmedOrderDetails from './ConfirmedOrderDetails';
 
 const stripePromise = loadStripe('pk_test_51OdjZ3An0YMgH2TtyCpkCBN4vDrMuQlwvmFSNKqBl9gJY996OXSpZ9QLz5dBGHLYLsa7QVvwY51I0DcLHErLxW7y00vjEWv9Lc');
 
@@ -68,6 +70,25 @@ function DealsPage(props){
     }
 
     const PAGI_LIMIT = 9;
+    const CUSTOMER_OBJ = {
+        title: "",
+        phone_number: "",
+        identity_documents: [
+            {
+                unique_identifier: "",
+                type: "",
+                issuing_country_code: "",
+                expires_on: ""
+            }
+        ],
+        id: "",
+        given_name: "",
+        gender: "",
+        type: "adult",
+        family_name: "",
+        email: "",
+        born_on: ""
+    }
 
     // For Stripe
     const [ options, setOptions ] = useState();
@@ -78,34 +99,15 @@ function DealsPage(props){
     });
     const [ stage, setStage ] = useState({percentage: 0, step: "", message: ""});
     const [ bookingIntent, setBookingIntent ] = useState({});
-    const [ passengers, setPassengers ] = useState([
-        {
-                "title": "",
-                "phone_number": "",
-                "identity_documents": [
-                    {
-                        "unique_identifier": "",
-                        "type": "",
-                        "issuing_country_code": "",
-                        "expires_on": ""
-                    }
-                ],
-                "id": "pas_0000AeVUZWXhEs7Ejp1B1t",
-                "given_name": "",
-                "gender": "",
-                "type": "adult",
-                "family_name": "",
-                "email": "",
-                "born_on": ""
-            }
-    ]);
+    const [ passengers, setPassengers ] = useState([CUSTOMER_OBJ]);
     const [ isBookingConfirmed, setIsBookingConfirmed] = useState(false);
     const [ bookPackageDetails, setBookPackageDetails ] = useState({
         oc_user_id: agent_id,
         package_info: {},
         payment_intent: {},
         booking_intent: {},
-        passengers: []
+        passengers: [],
+        prices: {}
     });
     const [ completedOrderDetails, setCompletedOrderDetails ] = useState({});
     const [ isLoading, setIsLoading ] = useState(false);
@@ -151,7 +153,7 @@ function DealsPage(props){
                 for(let ext=0; ext<extras?.length; ext++){
                     total_to_charge+=extras[ext].total;
                 }
-                total_to_charge = (total_to_charge * 100);
+                
                 if(!paymentIntent?.id){
                     // Creating payment intent
                     const pi = await fetch((API_HOST+'/api/payment/secret/'), {
@@ -172,8 +174,15 @@ function DealsPage(props){
                     // Creating booking intent with payment
                     let bookingItent = {
                         oc_user_id: agent_id,
+                        product_type: "package",
                         payment_intent: pi,
-                        booking_order: selectedPackageDeal,
+                        booking_order: {
+                            data: {
+                                selectedPackageDeal,
+                                passengers
+                            },
+                            id: "", // Will be set to bookedPackage?._id on booking success.
+                        }
                     }
                     const bi = await fetch((API_HOST+'/api/activities/booking-intent/'), {
                         method: "POST",
@@ -195,6 +204,11 @@ function DealsPage(props){
                     });
                 }
             })();
+
+            setBookPackageDetails({
+                ...bookPackageDetails,
+                prices: prices,
+            });
         }
 
         if(currentStage===__STAGES?.preview){
@@ -204,7 +218,7 @@ function DealsPage(props){
         }else if(currentStage===__STAGES?.payment){
             setstageNextButtonText("");
         }
-
+        window.scrollTo(0, 0);
     }, [ selectedPackageDeal, currentStage, prices ]);
 
     useEffect(()=>{
@@ -248,6 +262,10 @@ function DealsPage(props){
                 }
                 setPrices(_prices);
                 setPaymentIntent({});
+                setBookPackageDetails({
+                    ...bookPackageDetails,
+                    package_info: selectedPackageDeal,
+                });
             }
         })();
     }, [ selectedPackageDeal ]);
@@ -265,7 +283,7 @@ function DealsPage(props){
             payment_intent: paymentIntent,
             booking_intent: bookingIntent,
             passengers: passengers,
-        })
+        });
     }, [paymentIntent, bookingIntent, passengers]);
 
     const init_deals = async () => {
@@ -283,6 +301,11 @@ function DealsPage(props){
                 let deal_res = await fetchDealPackageById(agent_id, package_deal_id);
                 if(deal_res?._id){
                     setSelectedPackageDeal(deal_res);
+                    setBookPackageDetails({
+                        ...bookPackageDetails,
+                        package_info: deal_res,
+                        
+                    });
                     setErrorMessage("");
                     setIsError(false);
                 }else {
@@ -426,8 +449,10 @@ function DealsPage(props){
 
         // 1. Creating flight order
         await startProcessingBookingOrder();
+        console.log(bookPackageDetails);
         let res = await createPackageOrder(bookPackageDetails);
         if(res?._id){
+            console.log(res);
             setIsBookingConfirmed(true);
             setCompletedOrderDetails(res);
 
@@ -461,6 +486,26 @@ function DealsPage(props){
             });
         }
 
+    }
+
+    const addCustomer = (type) => {
+        let _psngrs = passengers;
+        _psngrs.push({...CUSTOMER_OBJ, type});
+        setPassengers([..._psngrs]);
+    }
+
+    const removeCustomer = (index) => {
+        let _psngrs = [
+            ...passengers
+        ];
+        let _rm_psngr = _psngrs.splice(index, 1);
+        if(_rm_psngr[0]?.type==="adult"){
+            if(!has_atleast_adult_customer(_psngrs)){
+                alert("You must have atleast one adult passenger!")
+                return;
+            }
+        }
+        setPassengers([..._psngrs]);
     }
 
     const savePassengerInfo = (new_info_obj, index) => {
@@ -548,12 +593,11 @@ function DealsPage(props){
                     }
                     <div className="wrapper">
                         {
-                            isBookingConfirmed ?
-                            <div>
-                                <pre>
-                                    {JSON.stringify(completedOrderDetails)}
-                                </pre>
-                            </div> :
+                            
+                            (isBookingConfirmed && completedOrderDetails?._id) ?
+                            <ConfirmedOrderDetails 
+                                data={completedOrderDetails}
+                            /> :
                             <div>
                                 {
                                     (!selectedPackageDeal?._id && dealsList?.length < 1) &&
@@ -637,6 +681,8 @@ function DealsPage(props){
                                                             resetCheckoutConfirmation={resetCheckoutConfirmation}
                                                             hasNewMessageFromParent={hasNewMessageFromParent}
                                                             currentParentMessge={currentParentMessge}
+                                                            removeCustomer={removeCustomer}
+                                                            addCustomer={addCustomer}
                                                         />
                                                     </div>
                                                 }

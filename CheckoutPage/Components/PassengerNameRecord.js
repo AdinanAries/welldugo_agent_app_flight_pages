@@ -19,6 +19,7 @@ const PassengerNameRecord = (props) => {
         }
     }
 
+    const [ newCustomerAgeGroup, setNewCustomerAgeGroup ] = useState("adult");
     const [ selectedPassengertIndex, setSelectedPassengertIndex ] = useState(UNSELECTED_PASSENGER_VALUE);
     const [ pageMsg, setPageMsg ] = useState(PAGE_TITLES.initial);
     const [ availableAdultPassengersForInfants, setAvailableAdultPassengersForInfants ] = useState([]);
@@ -33,6 +34,8 @@ const PassengerNameRecord = (props) => {
         bookingEngine,
         hasNewMessageFromParent,
         currentParentMessge,
+        removeCustomer,
+        addCustomer,
     } = props;
 
     const SHOW_PRICES = (hide_prices_section ? !hide_prices_section : true);
@@ -71,6 +74,7 @@ const PassengerNameRecord = (props) => {
     }
 
     const savePassengerInfo = (new_info_obj, index) => {
+        window.scrollTo(0, 0);
         props.savePassengerInfo(new_info_obj, index);
         unSelectPassengerCard();
         setAdultPsngrForInfants();
@@ -96,22 +100,49 @@ const PassengerNameRecord = (props) => {
                                     passenger={passengers[selectedPassengertIndex]}
                                     unSelectPassengerCard={unSelectPassengerCard}
                                 /> :
-                                passengers.map((each, i) => {
-                                    let age = calculate_age(each.born_on);
-                                    return <PassengerCard 
-                                        bookingEngine={bookingEngine}
-                                        key={each.id}
-                                        index={i}
-                                        age={age}
-                                        setResponsibleAdultForInfant={props.setResponsibleAdultForInfant}
-                                        availableAdultPassengersForInfants={availableAdultPassengersForInfants}
-                                        allInfantsPassengers={allInfantsPassengers}
-                                        selectPassengerCard={selectPassengerCard} 
-                                        passenger={each} 
-                                        hasNewMessageFromParent={hasNewMessageFromParent}
-                                        currentParentMessge={currentParentMessge}
-                                    />
-                                })
+                                <>
+                                    {
+                                        passengers.map((each, i) => {
+                                            let age = calculate_age(each.born_on);
+                                            return <PassengerCard 
+                                                bookingEngine={bookingEngine}
+                                                key={each.id}
+                                                index={i}
+                                                age={age}
+                                                setResponsibleAdultForInfant={props.setResponsibleAdultForInfant}
+                                                availableAdultPassengersForInfants={availableAdultPassengersForInfants}
+                                                allInfantsPassengers={allInfantsPassengers}
+                                                selectPassengerCard={selectPassengerCard} 
+                                                passenger={each} 
+                                                hasNewMessageFromParent={hasNewMessageFromParent}
+                                                currentParentMessge={currentParentMessge}
+                                                removeCustomer={(removeCustomer ? ()=>removeCustomer(i) : null)}
+                                            />
+                                        })
+                                    }
+                                    {
+                                        addCustomer &&
+                                        <div className="checkout_passenger_card" style={{position: "relative", border: "1px dashed rgba(0,0,0,0.2)", width: "calc(50% - 5px)", borderRadius: 8, marginTop: 7}}>
+                                            <div style={{cursor: "pointer", padding: 10, backgroundColor: "rgba(0,0,0,0.07)", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}}>
+                                                <div style={{padding: "10px 0", width: "100%"}}>
+                                                    <select onInput={(e)=>setNewCustomerAgeGroup(e.target.value)}
+                                                        value={newCustomerAgeGroup}
+                                                        style={{padding: 10, width: "100%", fontSize: 13, border: "1px solid rgba(0,0,0,0.1)", textAlign: "center"}}>
+                                                        <option value="adult">Adult</option>
+                                                        <option value="child">Child</option>
+                                                        <option value="infant_without_seat">Infant</option>
+                                                    </select>
+                                                    <p onClick={()=>addCustomer(newCustomerAgeGroup)} 
+                                                        style={{fontSize: 13, color: "white", textAlign: "center", textDecoration: "underline", padding: 10, backgroundColor: "darkslateblue"}}>
+                                                        <i style={{color: "rgba(255,255,255,0.5)", marginRight: 10, fontSize: 13}}
+                                                            className="fa-solid fa-plus"></i>
+                                                        Add Customer
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </>
                             }
                             
                         </div>
