@@ -22,7 +22,10 @@ import passengerImg6 from "../../explore_destination_img5.jpg";
 import { getApiHost } from '../../Constants/Environment';
 import FullPageLoader from '../../components/FullPageLoader';
 import FlightConfirmationEmailMarkup from "../../helpers/FlightConfirmationEmailMarkup";
-import { fetchAgentPriceMarkupInfo } from '../../services/agentServices';
+import { 
+    fetchAgentPriceMarkupInfo, 
+    fetchProductSpecificServiceFeesByAgentId 
+} from '../../services/agentServices';
 import { saveBookedItineraryItem } from '../../services/agentServices';
 import { getTotalDefaultFees } from '../../helpers/Prices';
 import SubmitCheckoutInProgress from '../../components/SubmitCheckoutInProgress';
@@ -42,6 +45,10 @@ export default function CheckoutPage(props){
         hasNewMessageFromParent,
         currentParentMessge,
     } = props;
+
+    let agent_id = "";
+    if(localStorage.getItem("agent"))
+        agent_id = localStorage.getItem("agent") || "";
 
     // For Stripe
     const [ options, setOptions ] = useState();
@@ -153,13 +160,13 @@ export default function CheckoutPage(props){
         setPaymentIntent(null);
         setBookingIntent(null);
         setIncludedCB(INCLUDED_CHECKED_BAGS_EACH_PSNGR_QUANTITY);
-        addApplicableDefaultFees();
+        addApplicableFees();
     }, []);
 
     // code: const TOTAL_PRICE=checkoutPayload.data.payments[0].amount;
     useEffect(()=>{
         calcOverall_Total();
-    });
+    }, [ PRICES ]);
 
     useEffect(()=>{
         (async()=>{
@@ -319,15 +326,18 @@ export default function CheckoutPage(props){
             setIsLoading(true);
 
             // Reset payments amount in case function runs multiple times
-            checkoutPayload.data.payments[0].amount=PRICES.total_amount;
+            let _overallTotal = parseFloat(markup(PRICES.total_amount, // total_amount - includes Base price and Tax
+                                    PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price.toFixed(2));
+            //checkoutPayload.data.payments[0].amount = _overallTotal;
 
             // 1. Including ancillaries totals into price
             const { extras } = PRICES;
             for(let i=0;i<extras.length;i++){
-                let overallTotal = parseFloat(checkoutPayload.data.payments[0].amount);
-                overallTotal=(overallTotal+extras[i].total).toFixed(2);
-                checkoutPayload.data.payments[0].amount=overallTotal;
+                //_overallTotal = parseFloat(checkoutPayload.data.payments[0].amount);
+                _overallTotal = (_overallTotal+parseFloat(extras[i].total));
             }
+
+            //checkoutPayload.data.payments[0].amount = _overallTotal;
 
             if(!paymentIntent?.id){
                 // Creating payment intent
@@ -338,7 +348,7 @@ export default function CheckoutPage(props){
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        amount: markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price.toFixed(2),
+                        amount: _overallTotal,
                         currency: 'usd'
                     })
                 }).then(res=>res.json()).then(data=>data).catch(e=>console.log(e));
@@ -348,12 +358,34 @@ export default function CheckoutPage(props){
                 let agent_id = "";
                 if(localStorage.getItem("agent"))
                     agent_id = localStorage.getItem("agent") || "";
-                    
+                
+                let _bl = "";
+                let _is_bl_sale = false;
+                if(localStorage.getItem("booking_link")){
+                    _bl = localStorage.getItem("booking_link");
+                    _is_bl_sale = true;
+                }
+                let _pkg = "";
+                let _is_pkg_item = false;
+                if(localStorage.getItem("package_id")){
+                    _pkg = localStorage.getItem("package_id");
+                    _is_pkg_item = true;
+                }
+
                 let bookingItent = {
                     oc_user_id: agent_id,
                     product_type: "flight",
+                    is_package_item: _is_pkg_item,
+                    package_id: _pkg,
+                    is_booking_link_sale: _is_bl_sale,
+                    booking_link_id: _bl,
                     payment_intent: pi,
                     booking_order: checkoutPayload,
+                    profits: {
+                        price_markup: PriceMarkupValue,
+                        can_show: canShowPrice,
+                    },
+                    prices: PRICES,
                 }
                 const bi = await fetch((API_HOST+'/api/activities/booking-intent/'), {
                     method: "POST",
@@ -472,19 +504,23 @@ export default function CheckoutPage(props){
 
     const createOrderOnSubmit = async (payment_intent, booking_intent) => {
 
+        // Creating booking intent with payment
+
         // 1. Creating flight order
         await startProcessingBookingOrder();
         // Bind payment intent to checkout obj
         checkoutPayload.meta.paymentIntent=payment_intent;
         checkoutPayload.meta.bookingIntent=booking_intent;
-        checkoutPayload.meta.totalFees=getTotalDefaultFees();
+        //checkoutPayload.meta.totalFees=getTotalDefaultFees();
+        checkoutPayload.meta.agent_id=agent_id;
         let res=await createFlightOrder(checkoutPayload);
         if(res?.data?.id){
-            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject({
-                ...res.data,
+            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject(res.data);
+            log.profits = {
                 price_markup: PriceMarkupValue,
-                price_status_at_checkout: canShowPrice,
-            });
+                can_show: canShowPrice,
+            };
+            log.prices=PRICES;
             // 2. Adding to booking history
             await startProcessingBookingLog();
             const logged = await logFlightBooking(log);
@@ -591,14 +627,26 @@ export default function CheckoutPage(props){
         window.location.href="/"
     }
 
-    const addApplicableDefaultFees = () => {
-        CONSTANTS.customer_fees.flight_order.defaults.forEach(each=>{
+    const addApplicableFees = async () => {
+        let agent_service_fees = await fetchProductSpecificServiceFeesByAgentId(agent_id, CONSTANTS?.app_services_fees?.types?.flights);
+        for(let sv=0; sv<agent_service_fees?.length; sv++){
+            let total = agent_service_fees[sv]?.price;
+            let name = agent_service_fees[sv]?.name;
             PRICES.extras.push({
-                name: each?.name,
-                quantity: (each?.quantity || 1),
-                total: each?.total
-            })
-        });
+                name,
+                total,
+                quantity: 1,
+                total_currency: "usd",
+            });
+        }
+        /*agent_service_fees.forEach(each=>{
+            if(each?.total)
+                PRICES.extras.push({
+                    name: each?.name,
+                    quantity: (each?.quantity || 1),
+                    total: each?.total
+                });
+        });*/
         SET_PRICES({...PRICES});
     }
 
@@ -615,7 +663,7 @@ export default function CheckoutPage(props){
         PRICES.extras=[];
 
         // Adding applicable fees
-        addApplicableDefaultFees();
+        addApplicableFees();
 
         // SET_PRICES({...PRICES}); --commented out since above function will set state
     }

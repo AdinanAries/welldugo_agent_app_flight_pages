@@ -57,8 +57,36 @@ function SearchForm( props ){
         }
     }
 
+    let _is_bl_search = false;
+    if(localStorage.getItem("booking_link")){
+        _is_bl_search = true;
+    }
+
     return(
-        <div id="search_results_page_search_form" className="main-search-form">
+        <div id="search_results_page_search_form" className="main-search-form" style={{position: "relative"}}>
+            {
+                _is_bl_search && <div style={{position: "absolute", left: 0, right: 0, zIndex: 100, height: "100%", width: "100%", backgroundColor: "rgba(255,255,255,0.5)"}}>
+                    <div style={{backgroundColor: "crimson", padding: 10, position: "absolute", width: "100%", bottom: 0, left: 0}}>
+                        <p style={{color: "white", fontSize: 13}}>
+                            <i style={{marginRight: 10, color: "yellow"}}
+                                className="fa-solid fa-info-circle"></i>
+                            You are searching from an agent created link...</p>
+                        <div style={{display: "flex", marginTop: 5, marginLeft: 20}}>
+                            <p onClick={()=>window.location.reload()}
+                                style={{cursor: "pointer", color: "skyblue", fontSize: 14, textDecoration: "underline"}}>
+                                Reload Page</p>
+                            <p style={{margin: "0 10px", color: "rgba(255,255,255,0.4)"}}>
+                                /</p>
+                            <p onClick={()=>{
+                                    localStorage.removeItem("booking_link");
+                                    window.location.href = "/search";
+                                }} 
+                                style={{cursor: "pointer", color: "lightgreen", fontSize: 14, textDecoration: "underline"}}>
+                                Reset page</p>
+                        </div>
+                    </div>
+                </div>
+            }
             <div className="two-search-inputs-container" style={{marginBottom: 10}}>
                 <div className="each_flex-side first">
                     <div className="forms_class_guests_cabin_settings_container" style={{zIndex: 10}}>

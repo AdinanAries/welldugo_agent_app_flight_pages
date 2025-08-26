@@ -182,7 +182,19 @@ function DealsPage(props){
                                 passengers
                             },
                             id: "", // Will be set to bookedPackage?._id on booking success.
-                        }
+                        },
+                        profits: {
+                            price_markup: {
+                                type: "",
+                                value: 0,
+                            },
+                            can_show: {
+                                profit_type: "",
+                                with_price_bound_profit: false,
+                                show: false,
+                            },
+                        },
+                        prices: prices,
                     }
                     const bi = await fetch((API_HOST+'/api/activities/booking-intent/'), {
                         method: "POST",
@@ -224,7 +236,7 @@ function DealsPage(props){
     useEffect(()=>{
         (async()=>{
             if(selectedPackageDeal?._id){
-                // 1. Get Service Fees
+                // 1. Getting Prices
                 const base_amount = parseFloat(selectedPackageDeal?.total_price);
                 const tax_amount = (base_amount*returnTaxRate().rate);
                 const total_amount = parseFloat(tax_amount+base_amount);

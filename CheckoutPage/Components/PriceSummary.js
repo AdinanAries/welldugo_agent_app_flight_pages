@@ -110,8 +110,9 @@ const PriceSummary = (props) => {
     
     const { extras } = prices;
     const EXTRAS_MARKUP = [];
+    let extras_total=0;
     extras.forEach(each=>{
-        overallTotal=(overallTotal+each.total);
+        extras_total=(extras_total+each.total);
         EXTRAS_MARKUP.push(
             <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                 <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.7)"}}>
@@ -127,6 +128,9 @@ const PriceSummary = (props) => {
                         canShowPrice?.show ?
                             <> 
                                 {
+                                    add_commas_to_number(parseFloat(each.total)?.toFixed(2))
+                                }
+                                {/*
                                     !canShowPrice?.with_price_bound_profit ?
                                     add_commas_to_number(parseFloat(each.total)?.toFixed(2)) :
                                     <>
@@ -136,7 +140,7 @@ const PriceSummary = (props) => {
                                             : "N/A"
                                         }
                                     </>
-                                }
+                                */}
                             </>
                         : <span style={{color: "rgba(0,0,0,0.8)"}}>
                             <i className="fa-solid fa-filter-circle-dollar"></i>
@@ -153,37 +157,6 @@ const PriceSummary = (props) => {
                 Price Summary
             </p>
             <div style={{marginTop: 20, borderBottom: "1px solid rgba(0,0,0,0.1)", paddingBottom: 10}}>
-                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
-                    <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.8)"}}>
-                        {total_travelers>1 ? (total_travelers+" People"): (total_travelers+" Person")}:
-                    </p>
-                    <p style={{fontSize: 14, letterSpacing: 1, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
-                        {
-                            (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
-                            <span style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
-                            dangerouslySetInnerHTML={{__html: get_currency_symbol(prices.total_currency)}}></span> : ""
-                        }
-                        { 
-                            canShowPrice?.show ?
-                                <> 
-                                    {
-                                        !canShowPrice?.with_price_bound_profit ?
-                                        add_commas_to_number(parseFloat(prices.total_amount)?.toFixed(2)) :
-                                        <>
-                                            {
-                                                PriceMarkupValue?.value ?
-                                                (add_commas_to_number((markup(prices.total_amount, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2)))
-                                                : "N/A"
-                                            }
-                                        </>
-                                    }
-                                </>
-                            : <span style={{color: "rgba(0,0,0,0.8)"}}>
-                                <i className="fa-solid fa-filter-circle-dollar"></i>
-                            </span>
-                        }
-                    </p>
-                </div>
                 <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                     <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.7)"}}>
                         {__item_type}
@@ -215,7 +188,7 @@ const PriceSummary = (props) => {
                         }
                     </p>
                 </div>
-                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
+                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderBottom: "1px dashed rgba(0,0,0,0.1)", paddingBottom: 10}}>
                     <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.7)"}}>
                         Taxes
                     </p>
@@ -229,7 +202,10 @@ const PriceSummary = (props) => {
                             canShowPrice?.show ?
                                 <> 
                                     {
-                                        !canShowPrice?.with_price_bound_profit ?
+                                        (
+                                            !canShowPrice?.with_price_bound_profit || 
+                                            PriceMarkupValue?.type==="flat_rate"
+                                        ) ?
                                         add_commas_to_number(parseFloat(prices.tax_amount)?.toFixed(2)) :
                                         <>
                                             {
@@ -246,7 +222,38 @@ const PriceSummary = (props) => {
                         }
                     </p>
                 </div>
-                <div style={{marginTop: 10}}>
+                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderBottom: "1px dashed rgba(0,0,0,0.1)", paddingBottom: 10}}>
+                    <p style={{fontSize: 14, letterSpacing: 1, color: "rgba(0,0,0,0.8)"}}>
+                        {total_travelers>1 ? (total_travelers+" People"): (total_travelers+" Person")}:
+                    </p>
+                    <p style={{fontSize: 14, letterSpacing: 1, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
+                        {
+                            (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)) ?
+                            <span style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)"}} 
+                            dangerouslySetInnerHTML={{__html: get_currency_symbol(prices.total_currency)}}></span> : ""
+                        }
+                        { 
+                            canShowPrice?.show ?
+                                <> 
+                                    {
+                                        !canShowPrice?.with_price_bound_profit ?
+                                        add_commas_to_number(parseFloat(prices.total_amount)?.toFixed(2)) :
+                                        <>
+                                            {
+                                                PriceMarkupValue?.value ?
+                                                (add_commas_to_number((markup(prices.total_amount, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2)))
+                                                : "N/A"
+                                            }
+                                        </>
+                                    }
+                                </>
+                            : <span style={{color: "rgba(0,0,0,0.8)"}}>
+                                <i className="fa-solid fa-filter-circle-dollar"></i>
+                            </span>
+                        }
+                    </p>
+                </div>
+                <div>
                     {EXTRAS_MARKUP.map(each=>each)}
                 </div>
             </div>
@@ -271,11 +278,12 @@ const PriceSummary = (props) => {
                             <> 
                                 {
                                     !canShowPrice?.with_price_bound_profit ?
-                                    add_commas_to_number(parseFloat(overallTotal)?.toFixed(2)) :
+                                    add_commas_to_number(parseFloat((extras_total+overallTotal))?.toFixed(2)) :
                                     <>
                                         {
+                                            
                                             PriceMarkupValue?.value ?
-                                            (add_commas_to_number((markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2)))
+                                            (add_commas_to_number((parseFloat((markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2))+extras_total)))
                                             : "N/A"
                                         }
                                     </>
@@ -305,9 +313,11 @@ const PriceSummary = (props) => {
                                         add_commas_to_number(parseFloat(overallTotal)?.toFixed(2)) :
                                         <>
                                             {
+                                                add_commas_to_number(parseFloat(overallTotal)?.toFixed(2))
+                                                /*
                                                 PriceMarkupValue?.value ?
                                                 (add_commas_to_number((markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2)))
-                                                : "N/A"
+                                                : "N/A"*/
                                             }
                                         </>
                                     }

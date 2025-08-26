@@ -18,6 +18,7 @@ import BotLogin from "../../../Bot-Login.jpg";
 import BotLogin2 from "../../../Bot-Login-2.jpg";
 import BotLogin3 from "../../../Bot-Login-3.jpg";
 import { fetchAgentPriceMarkupInfo } from "../../../services/agentServices";
+import { freshEngineCleanup } from "../../../services/agentServices";
 
 const OrderCompletedPage = (props) => {
 
@@ -83,7 +84,7 @@ const OrderCompletedPage = (props) => {
                     _can_show_obj.with_price_bound_profit = false;
                     _can_show_obj.show = true;
                 }
-            }else {
+            }else{
                 if(localStorage.getItem("agent")){
                     const agent_id = localStorage.getItem("agent");
                     if(agent_id || agent_id!=="undefined"){
@@ -164,6 +165,7 @@ const OrderCompletedPage = (props) => {
                 setIsLoggedIn(true);
             }
         })()
+        freshEngineCleanup();
     }, []);
 
     const emailOnInput = (e) => {
@@ -207,7 +209,7 @@ const OrderCompletedPage = (props) => {
                 isError: true,
                 message: "please enter password",
             });
-            setIsLoading(false)
+            setIsLoading(false);
             return
         }
         let res = await loginPost(formData);
