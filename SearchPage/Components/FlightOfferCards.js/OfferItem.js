@@ -11,13 +11,16 @@ import {
 } from "../../../../helpers/general";
 import { fetchAgentPriceMarkupInfo } from "../../../../services/agentServices";
 import SelectedTicketItinSegments from "../SelectedTicketItinSegments";
+import CONSTANTS from "../../../../Constants/Constants";
 
-const DuffelOfferItem = (props) => {
+const OfferItem = (props) => {
 
     const {
         bookingEngine,
         hasNewMessageFromParent,
         currentParentMessge,
+        data_provider,
+        rawData,
     } = props;
 
     const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
@@ -105,6 +108,15 @@ const DuffelOfferItem = (props) => {
         slices, 
         passengers 
     } = props?.flight;
+
+    const selectFlightOfferOnClick = () => {
+        if(CONSTANTS?.duffel===data_provider?.toUpperCase()){
+            props?.selectFlightOffer(id);
+        }else if(CONSTANTS?.amadeus===data_provider?.toUpperCase()){
+            props?.selectFlightOffer(rawData);
+        }
+    }
+
     const EMISSIONS = props?.flight?.total_emissions_kg
     //console.log(props.flight);
     
@@ -215,7 +227,7 @@ const DuffelOfferItem = (props) => {
         <>
             <div className="each_ticket_item_container"
                 style={{cursor: "pointer", padding: 15, borderTop: "1px solid rgba(0,0,0,0.1)", display: "flex", justifyContent: "space-between"}}>
-                <div onClick={()=>{global.show_selected_ticket_details_pane(); props.selectFlightOffer(id)}}
+                <div onClick={()=>{global.show_selected_ticket_details_pane(); selectFlightOfferOnClick()}}
                     className="mobile_content_display_block_container" 
                     style={{width: "calc(100% - 110px)", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
                     <div>
@@ -226,17 +238,54 @@ const DuffelOfferItem = (props) => {
                         <p style={{marginLeft: 40, color: "rgba(0,0,0,0.8)", fontSize: 12, marginBottom: 5}}>
                             {owner?.name}
                         </p>
-                        <p style={{color: "rgba(0,0,0,0.7)", marginTop: 5}}>
+                        <p style={{marginLeft: 40, color: "rgba(0,0,0,0.7)", marginTop: 5}}>
                             {
+                                
                                 all_amenities?.wifi?.available &&
-                                <i style={{fontSize: 13, marginRight: 10}} className="fa-solid fa-wifi"></i>
+                                <span className="tooltip_parent">
+                                    <i style={{fontSize: 13, marginRight: 10}} className="fa-solid fa-wifi"></i>
+                                    <span className="tooltip">
+                                        Wifi
+                                    </span>
+                                </span>
                             }
                             {
                                 all_amenities?.power?.available &&
-                                <i style={{fontSize: 13, marginRight: 10}} className="fa-solid fa-plug-circle-bolt"></i>
+                                <span className="tooltip_parent">
+                                    <i style={{fontSize: 13, marginRight: 10}} className="fa-solid fa-plug-circle-bolt"></i>
+                                    <span className="tooltip">
+                                        Power
+                                    </span>
+                                </span>
+                            }
+                            {
+                                all_amenities?.baggage?.available &&
+                                <span className="tooltip_parent">
+                                    <i style={{fontSize: 13, marginRight: 10}} className="fa-solid fa-suitcase-rolling"></i>
+                                    <span className="tooltip">
+                                        Checked Bag
+                                    </span>
+                                </span>
+                            }
+                            {
+                                all_amenities?.seat?.available &&
+                                <span className="tooltip_parent">
+                                    <i style={{fontSize: 13, marginRight: 10}} className="fa-solid fa-tag"></i>
+                                    <span className="tooltip">
+                                        Pre-Reserved Seat
+                                    </span>
+                                </span>
+                            }
+                            {
+                                all_amenities?.meal?.available &&
+                                <span className="tooltip_parent">
+                                    <i style={{fontSize: 13, marginRight: 10}} className="fa-solid fa-utensils"></i>
+                                    <span className="tooltip">
+                                        Meal
+                                    </span>
+                                </span>
                             }
                         </p>
-                        
                     </div>
                     <div>
                         <p style={{color: "rgba(0,0,0,0.8)", fontSize: 12, textAlign: "center", marginBottom: 5}}>
@@ -301,6 +350,12 @@ const DuffelOfferItem = (props) => {
                                 borderRadius: `${bookingEngine?.searchButtonBorderRadius}%`, fontSize: 13, width: 30, height: 30, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)"}}>
                             <i className="fa-solid fa-angle-down"></i>
                     </div>
+                    <p style={{marginTop: 10, textAlign: 'center', borderTop: "1px dashed rgba(0,0,0,0.1)"}}>
+                            <span style={{color: "rgba(0,0,0,0.7)", fontSize: 11}}>
+                                <i style={{marginRight: 10, fontSize: 11, color: "rgba(0,0,0,0.5)"}} className="fa-solid fa-share-alt"></i>
+                                {data_provider}
+                            </span>
+                        </p>
                 </div>
             </div>
             <div id={"each_ticket_item_more_details_container_"+index} 
@@ -331,7 +386,7 @@ const DuffelOfferItem = (props) => {
                         {ITIN_SEGMENTS?.map(each=>each)}
                     </div>
                     <div style={{display: "flex", justifyContent: "space-between", marginTop: 15,}}>
-                        <div onClick={()=>{global?.show_selected_ticket_details_pane(); props?.selectFlightOffer(id); toggle_show_more_details();}}
+                        <div onClick={()=>{global?.show_selected_ticket_details_pane(); selectFlightOfferOnClick(); toggle_show_more_details();}}
                             style={{width: "calc(100% - 45px)", 
                                 borderRadius: bookingEngine?.actionButtonBorderRadius, boxShadow: "1px 2px 3px rgba(0,0,0,0.3)", fontFamily: "'Prompt', Sans-serif", textAlign: "center", 
                                 color: bookingEngine?.actionButtonsTxtColor, 
@@ -350,4 +405,4 @@ const DuffelOfferItem = (props) => {
     );
 }
 
-export default DuffelOfferItem;
+export default OfferItem;

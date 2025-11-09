@@ -26,6 +26,7 @@ const PassengerNameRecord = (props) => {
     const [ allInfantsPassengers, setAllInfantPassengers ] = useState([]);
 
     const { 
+        data_provider,
         hide_prices_section,
         passengers, 
         prices, 
@@ -93,6 +94,7 @@ const PassengerNameRecord = (props) => {
                             
                             { ((selectedPassengertIndex > UNSELECTED_PASSENGER_VALUE) && (selectedPassengertIndex < passengers.length)) ? 
                                 <PassengerForm 
+                                    data_provider={data_provider}
                                     bookingEngine={bookingEngine}
                                     index={selectedPassengertIndex}
                                     savePassengerInfo={savePassengerInfo}

@@ -9,7 +9,11 @@ import Weather from "../../../helpers/Weather";
 import Tourism from "../../../helpers/Tourism";
 import { show_prompt_on_Bot_AD_tips_popup } from "../../../components/HPSupport";
 import { getDataSummeries } from "../../../helpers/FlightsFilterHelpers";
-import { getClient } from "../../../helpers/general";
+import { 
+    getClient,
+    has_data_provider,
+} from "../../../helpers/general";
+import { FLIGHT_DATA_ADAPTER } from "../../../helpers/FlightDataAdapter";
 import LOGO_PLACEHOLDER from "../../../LOGO_PLACEHOLDER.jpg";
 import { saveBookedItineraryItem } from "../../../services/agentServices";
 
@@ -24,10 +28,22 @@ const SearchPageMain = (props) => {
         currentParentMessge,
     } = props;
     
-    let [ flights, setFlights ] = useState([]);
-    let [ loading, setLoading ] = useState(true);
-    let [ selectedFlightId, setSelectedFlightId] = useState("");
-
+    const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
+        type: "",
+        value: 0,
+    });
+    const [ canShowPrice, setCanShowPrice ] = useState({
+        profit_type: "",
+        with_price_bound_profit: false,
+        show: false,
+    });
+    const [ flights, setFlights ] = useState([]);
+    const [ adaptedFlights, setAdaptedFlights ] = useState([]);
+    const [ data_provider, setDataProvider ] = useState(CONSTANTS?.duffel);
+    const [ providerDictionary, setProviderDictionary ] = useState({});
+    const [ loading, setLoading ] = useState(true);
+    const [ selectedFlightId, setSelectedFlightId ] = useState("");
+    const [ selectedFlightData, setSelectedFlightData ] = useState(null);
     // Search object that was sent to the server
     const SEARCH_OBJ=JSON.parse(localStorage.getItem(CONSTANTS.local_storage.flight_search_object));
     
@@ -46,42 +62,78 @@ const SearchPageMain = (props) => {
         }
     }
 
-    const selectFlightOffer = (id) => {
-        setSelectedFlightId(id);
+    const selectFlightOffer = (id_or_data) => {
+        if(typeof id_or_data === "string"){
+            setSelectedFlightId(id_or_data);
+        }else{
+            setSelectedFlightData(id_or_data);
+        }
     }
 
     const unselectFlightOffer = () => {
         setSelectedFlightId("");
+        setSelectedFlightData(null);
     }
 
     useEffect(() => {
        setFlightsResults();
     }, []);
 
+    useEffect(()=>{
+        (async()=>{
+            if(flights?.length>0){
+                let __FLIGHTS = [];
+                for(let i=0; i<flights.length; i++){
+                    const FLIGHT = await FLIGHT_DATA_ADAPTER.adapt(flights[i], data_provider, providerDictionary);
+                    __FLIGHTS?.push(FLIGHT);
+                }
+                setAdaptedFlights(__FLIGHTS);
+            }else{
+                setAdaptedFlights([]);
+            }
+        })();
+    }, [flights, providerDictionary, data_provider]);
+
+    useEffect(()=>{
+        if(flights){
+            if(flights?.length>0 && (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)))
+                runBotPrompt(flights);
+            //else
+                //runBotPrompt();
+        }
+    }, [adaptedFlights, PriceMarkupValue, canShowPrice])
+
     const setFlightsResults = async () => {
 
         if(searchObjectIncomplete){
             setFlights([]);
+            setAdaptedFlights([]);
             setLoading(false);
             return;
         }
 
         // Do the fetch to get the flights from the server
         let res = await fetchFlightOffers();
-            console.log('Flight Offers:', res);
-            if(res?.data)
-                (res?.data?.length>0) ? setFlights(res?.data) : setFlights([]);
-            else
-                setFlights([]);
-            setLoading(false);
+            //console.log('Flight Offers:', res);
 
-        if(res?.data)
-            if(res?.data?.length>0)
-                runBotPrompt(res?.data);
+            if(res?.data_provider)
+                setDataProvider(res?.data_provider);
             else
-                runBotPrompt();
-        else
-            runBotPrompt();
+                setDataProvider(""); 
+
+            const flights_data = FLIGHT_DATA_ADAPTER?.get_flight_offers_from_response(res, res?.data_provider, setProviderDictionary);
+            if(flights_data){
+                if(flights_data?.length>0){
+                    setFlights(flights_data);
+                }else{
+                    setFlights([]);
+                }
+            }else{
+                setFlights([]);
+                setAdaptedFlights([]);
+            }
+
+            setLoading(false);
 
         // Send back message to oc about sucess status of search link verification
         if(localStorage.getItem("verify_search_link")){
@@ -140,8 +192,10 @@ const SearchPageMain = (props) => {
     }
 
     if(flights.length>0){
-        SEARCH_OBJ.origin_city = flights[0].slices[0].segments[0].origin.city_name;
-        SEARCH_OBJ.destination_city = flights[0].slices[0].segments[0].destination.city_name;
+        if(has_data_provider(data_provider)){
+            SEARCH_OBJ.origin_city = FLIGHT_DATA_ADAPTER?.adapt(flights?.[0], data_provider, providerDictionary).slices?.[0].segments?.[0].origin?.city_name;
+            SEARCH_OBJ.destination_city = FLIGHT_DATA_ADAPTER?.adapt(flights?.[0], data_provider, providerDictionary).slices?.[0].segments?.[0].destination?.city_name;
+        }
     }
     useEffect(()=>{
         global.autoSelectAirportForInputField(SEARCH_OBJ.itinerary.departure.airport, "sp_search_forms_from_where_input_fld");
@@ -167,23 +221,25 @@ const SearchPageMain = (props) => {
     }, []);
 
     const runBotPrompt = (flights=null) => {
-        let lon = parseFloat(SEARCH_OBJ?.itinerary?.arrival?.longitude);
-        let lat = parseFloat(SEARCH_OBJ?.itinerary?.arrival?.latitude);
-        let iso_date;
-        let flightsOffers;
-        if(!flights){
-            flightsOffers={isError: true}
-            iso_date = SEARCH_OBJ?.itinerary?.departure?.date;
+        if(has_data_provider(data_provider)){
+            let lon = parseFloat(SEARCH_OBJ?.itinerary?.arrival?.longitude);
+            let lat = parseFloat(SEARCH_OBJ?.itinerary?.arrival?.latitude);
+            let iso_date;
+            let flightsOffers;
+            if(!flights){
+                flightsOffers={isError: true}
+                iso_date = SEARCH_OBJ?.itinerary?.departure?.date;
+            }
+            else{
+                flightsOffers=flights;
+                iso_date=flightsOffers?.[0]?.slices?.[0]?.segments?.[0]?.arriving_at?.split("T")[0];
+            }
+            Weather.getWeather(lon, lat, iso_date, iso_date, weatherCallback, flightsOffers);
         }
-        else{
-            flightsOffers=flights;
-            iso_date=flightsOffers[0]?.slices[0]?.segments[0]?.arriving_at?.split("T")[0];
-        }
-        Weather.getWeather(lon, lat, iso_date, iso_date, weatherCallback, flightsOffers);
     }
 
-    const weatherCallback = (weatherData, flightsOffers={isError: true}) => {
-        console.log('Weather', weatherData);
+    const weatherCallback = async (weatherData, flightsOffers={isError: true}) => {
+        //console.log('Weather', weatherData);
         const PROMPTS=["*", "summaries", "weather", "places"];
         const TO_SHOW=PROMPTS[Math.floor(Math.random() * PROMPTS.length)]
         // Duration of the Prompt
@@ -194,7 +250,7 @@ const SearchPageMain = (props) => {
             let lon = parseFloat(SEARCH_OBJ?.itinerary?.arrival?.longitude);
             let lat = parseFloat(SEARCH_OBJ?.itinerary?.arrival?.latitude);
             Tourism.getTouristAttraction(lon, lat, (touristAttraction) => {
-                console.log("Search Page Attraction", touristAttraction);
+                //console.log("Search Page Attraction", touristAttraction);
                 if(touristAttraction?.error || !touristAttraction?.name){
                     // Fall back on Summaries
                     if(flightsOffers?.isError){
@@ -296,7 +352,8 @@ const SearchPageMain = (props) => {
                 }
             );
         }else{ // Both Weather and Summaries
-            let summeries = getDataSummeries(flightsOffers);
+            let summeries = await getDataSummeries(flightsOffers, data_provider, providerDictionary, adaptedFlights);
+            //console.log("SUUUUUUUUUUUUUUUUMMMM", summeries)
             let prompt_msg = Weather.getWeatherPromptMsgDestinationCityAndSummeries(current_hour_weather);
             show_prompt_on_Bot_AD_tips_popup(
                 prompt_msg,
@@ -305,7 +362,9 @@ const SearchPageMain = (props) => {
                 {
                     weather: true,
                     data: current_hour_weather,
-                    flight_data_summeries: summeries
+                    flight_data_summeries: summeries,
+                    Price_markup_value: PriceMarkupValue,
+                    can_show_price: canShowPrice,
                 }
             );
         }
@@ -313,15 +372,18 @@ const SearchPageMain = (props) => {
     }
 
 
-    const getAndShowBotFlightSummaryPrompt = (flightsOffers, duration) => {
-        let summeries = getDataSummeries(flightsOffers);
+    const getAndShowBotFlightSummaryPrompt = async (flightsOffers, duration) => {
+        let summeries = await getDataSummeries(flightsOffers, data_provider, providerDictionary, adaptedFlights);
+        //console.log("SUUUUUUUUUUUUUUUUMMMM", summeries)
         let prompt_msg = Weather.getWeatherPromptMsgSummeries(flightsOffers);
         show_prompt_on_Bot_AD_tips_popup(
             prompt_msg,
             CONSTANTS.bot.prompt_types.prompt,
             duration,
             {
-                flight_data_summeries: summeries
+                flight_data_summeries: summeries,
+                Price_markup_value: PriceMarkupValue,
+                can_show_price: canShowPrice,
             }
         );
     }
@@ -455,21 +517,44 @@ const SearchPageMain = (props) => {
                                 </div>
                             }
                         </> :
-                        <ResultsListContainer
-                            bookingEngine={bookingEngine}
-                            selectFlightOffer={selectFlightOffer}
-                            flights={flights} loading={loading}
-                            SEARCH_OBJ={SEARCH_OBJ}
-                            agentDetails={agentDetails}
-                            hasNewMessageFromParent={hasNewMessageFromParent}
-                            currentParentMessge={currentParentMessge}
-                        />
+                        <>
+                            {
+                               has_data_provider(data_provider) ?
+                                <ResultsListContainer
+                                    PriceMarkupValue={PriceMarkupValue}
+                                    setPriceMarkupValue={setPriceMarkupValue}
+                                    canShowPrice={canShowPrice}
+                                    setCanShowPrice={setCanShowPrice}
+                                    data_provider={data_provider}
+                                    providerDictionary={providerDictionary}
+                                    bookingEngine={bookingEngine}
+                                    selectFlightOffer={selectFlightOffer}
+                                    flights={flights} loading={loading}
+                                    adaptedFlights={adaptedFlights}
+                                    SEARCH_OBJ={SEARCH_OBJ}
+                                    agentDetails={agentDetails}
+                                    hasNewMessageFromParent={hasNewMessageFromParent}
+                                    currentParentMessge={currentParentMessge}
+                                /> : <div style={{padding: "10px 0"}}>
+                                    <div style={{padding: 20, backgroundColor: "crimson", border: "2px dashed red", fontSize: 13}}>
+                                        <p style={{fontSize: 13, color: "white"}}>
+                                            <i style={{marginRight: 10, color: "yellow"}}
+                                                className="fa-solid fa-exclamation-triangle"></i>
+                                            Data Source Not Identified.
+                                        </p>
+                                    </div>
+                                </div>
+                            }
+                        </>
                     }
                     {
-                        selectedFlightId ?
+                        (selectedFlightId || selectedFlightData) ?
                         <SelectedTicketPane
+                            data_provider={data_provider}
+                            providerDictionary={providerDictionary}
                             bookingEngine={bookingEngine}
                             selectedFlightId={selectedFlightId}
+                            selectedFlightData={selectedFlightData}
                             unselectFlightOffer={unselectFlightOffer}
                             begin_checkout={props.begin_checkout}
                             hasNewMessageFromParent={hasNewMessageFromParent}

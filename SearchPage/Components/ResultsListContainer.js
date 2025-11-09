@@ -4,6 +4,7 @@ import plane_departure from "../../../airplane-departure.svg"
 import missing_icon from "../../../missing.svg"
 import FlightLoaderCard from "./FlightLoaderCard";
 import FlightOfferItem from "./FlightOfferItem";
+import { FLIGHT_DATA_ADAPTER } from "../../../helpers/FlightDataAdapter";
 import SearchFilters from "./SearchFilters";
 import SearchFiltersLoader from "./SearchFiltersLoader";
 import MobileItinTopInfo from "./MobileItinTopInfo";
@@ -52,17 +53,14 @@ export default function ResultsListContainer(props){
         agentDetails,
         hasNewMessageFromParent,
         currentParentMessge,
+        data_provider,
+        providerDictionary,
+        adaptedFlights,
+        PriceMarkupValue,
+        setPriceMarkupValue,
+        canShowPrice,
+        setCanShowPrice
     } = props;
-    
-    const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
-        type: "",
-        value: 0,
-    });
-    const [ canShowPrice, setCanShowPrice ] = useState({
-        profit_type: "",
-        with_price_bound_profit: false,
-        show: false,
-    });
 
     useEffect(()=>{
         (async()=>{
@@ -99,12 +97,12 @@ export default function ResultsListContainer(props){
                     _pm_obj.value = engine_parameters?.postBody?.current_price_bound_profit_value;
                     _can_show_obj.with_price_bound_profit = true;
                     _can_show_obj.show = true;
-                    console.log(engine_parameters);
+                    //console.log(engine_parameters);
                 }else{
                     _can_show_obj.with_price_bound_profit = false;
                     _can_show_obj.show = true;
                 }
-            }else {
+            }else{
                 if(localStorage.getItem("agent")){
                     const agent_id = localStorage.getItem("agent");
                     if(agent_id || agent_id!=="undefined"){
@@ -130,6 +128,10 @@ export default function ResultsListContainer(props){
         })();
     }, [currentParentMessge]);
     
+    const [filterStops, setFilterStops] = useState([]);
+    const [filterAirlines, setFilterAirlines] = useState([]);
+    const [filterTimes, setFilterTimes] = useState([]);
+
     const [ filteredFlights, setFilteredFlights ] = useState([]);
     const [ priceSlider, setPriceSlider ] = useState(101);
     const [ isFiltersApplied, setIsFiltersApplied ] = useState(false);
@@ -151,6 +153,7 @@ export default function ResultsListContainer(props){
     const [ maxCheckedBagsFilter, setMaxCheckedBagsFilter ] = useState(0);
     const [ maxCarryOnBagsFilter, setMaxCarryOnBagsFilter ] = useState(0);
     const [ priceHighLowSort, setPriceHighLowSort] = useState(SORT); // [0 => Lowest, 1 => Highest]
+    const [ FLIGHTS, SET_FLIGHTS ] = useState([]);
 
     const CURRENCY_SYMBOL = get_currency_symbol("usd");
 
@@ -192,26 +195,109 @@ export default function ResultsListContainer(props){
     }
 
     useEffect(()=>{
-        // Price
-        const PRICE_RANGE = getMinAndMaxPrice(props.flights);
-        setFlightsMaxPrice(PRICE_RANGE.max_price);
-        setFlightsMinPrice(PRICE_RANGE.min_price);
-        setSliderMinPercent((PRICE_RANGE.min_price*100)/PRICE_RANGE.max_price);
 
-        // Duration
-        const DURATION_RANGE = getMinAndMaxDuration(props.flights);
-        setFlightsMaxDuration(DURATION_RANGE.max_duration);
-        setFlightsMinDuration(DURATION_RANGE.min_duration);
-        setDSliderMinPercent((DURATION_RANGE.min_duration*100)/DURATION_RANGE.max_duration);
+        (async()=>{
+            if(adaptedFlights?.length>0){
+                // Price
+                const PRICE_RANGE = await getMinAndMaxPrice(props.flights, data_provider, providerDictionary, adaptedFlights);
+                setFlightsMaxPrice(PRICE_RANGE.max_price);
+                setFlightsMinPrice(PRICE_RANGE.min_price);
+                setSliderMinPercent((PRICE_RANGE.min_price*100)/PRICE_RANGE.max_price);
 
-        // Bags
-        const MAX_BAGS = getMaxBags(props.flights);
-        setMaxCheckedBagsFilter(MAX_BAGS.maxCheckedBags); 
-        setMaxCarryOnBagsFilter(MAX_BAGS.maxCarryOnBags);
+                // Duration
+                const DURATION_RANGE = await getMinAndMaxDuration(props.flights, data_provider, providerDictionary, adaptedFlights);
+                setFlightsMaxDuration(DURATION_RANGE.max_duration);
+                setFlightsMinDuration(DURATION_RANGE.min_duration);
+                setDSliderMinPercent((DURATION_RANGE.min_duration*100)/DURATION_RANGE.max_duration);
+
+                // Bags
+                const MAX_BAGS = await getMaxBags(props.flights, data_provider, providerDictionary, adaptedFlights);
+                setMaxCheckedBagsFilter(MAX_BAGS.maxCheckedBags); 
+                setMaxCarryOnBagsFilter(MAX_BAGS.maxCarryOnBags);
+            }
+        })()
         
-    });
+    }, [ props.flights, adaptedFlights ]);
 
-    const slidePriceFilter = (e) => {
+    useEffect(()=>{
+
+        (async ()=>{
+
+            // Getting Filter - Flight Stops - Creates Filter Toggles
+            let filter_stops = await duffelStopsAndPrices(props.flights, data_provider, providerDictionary, adaptedFlights);
+            let filter_airlines = await duffelAirlinesAndPrices(props.flights, data_provider, providerDictionary, adaptedFlights);
+            let filter_times = await duffelTimesAndPrices(props.flights, data_provider, providerDictionary, adaptedFlights);
+            setFilterStops(filter_stops);
+            // Getting Filter - Airlines - Creates Filter Toggles
+            setFilterAirlines(filter_airlines);
+            // Getting Filter - Take-off Times - Creates Filter Toggles
+            setFilterTimes(filter_times);
+
+            let _FLIGHTS=[];
+            if((props.flights.length>0 && adaptedFlights.length>0) && filteredFlights?.length<1){
+
+                // Sorting takes place here
+                let _adapted_flights = bubbleSort(adaptedFlights, priceHighLowSort);
+                let _flights = bubbleSort(props.flights, priceHighLowSort);
+
+                for(let index=0; index<_flights?.length; index++){
+                    const each = _adapted_flights[index]; // Equivalent Arrays
+                    const raw = _flights[index]; // Equivalent Arrays
+                    //const __Flight = await FLIGHT_DATA_ADAPTER?.adapt(each, data_provider, providerDictionary);
+                    _FLIGHTS.push(<FlightOfferItem 
+                        data_provider={data_provider}
+                        bookingEngine={bookingEngine}
+                        selectFlightOffer={props.selectFlightOffer}
+                        key={index} 
+                        index={index}
+                        flight={each}
+                        rawData={raw}
+                        hasNewMessageFromParent={hasNewMessageFromParent}
+                        currentParentMessge={currentParentMessge}
+                    />);
+                }
+
+                SET_FLIGHTS(_FLIGHTS);
+                
+            }else if(Array.isArray(filteredFlights) && filteredFlights.length>0){
+
+                for(let index=0; index<filteredFlights?.length; index++){
+                    const each = filteredFlights[index];
+                    const raw_data = await props.flights.find(raw=>raw.id===each.id); //to do //await FLIGHT_DATA_ADAPTER?.adapt(each, data_provider, providerDictionary);
+                    _FLIGHTS.push(<FlightOfferItem 
+                        data_provider={data_provider}
+                        bookingEngine={bookingEngine}
+                        selectFlightOffer={props.selectFlightOffer}
+                        key={index} 
+                        index={index}
+                        flight={each}
+                        rawData={raw_data}
+                        hasNewMessageFromParent={hasNewMessageFromParent}
+                        currentParentMessge={currentParentMessge}
+                    />);
+                }
+
+                SET_FLIGHTS(_FLIGHTS);
+
+            }else{
+
+                SET_FLIGHTS(<div style={{padding: "10px", maxWidth: 250, margin: "auto", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center"}}>
+                    <div style={{backgroundImage: `url('${missing_icon}')`, backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center", width: "100%", height: "100%", position: "absolute", left: 10, top: -5,  zIndex: 1, opacity: 0.1}}></div>
+                    <p style={{textAlign: "center"}}>
+                        <img src={plane_departure}  style={{width: "100%", height: "auto", opacity: 0.4}} alt="plane departure"/>
+                    </p>
+                    <p style={{fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontSize: 14, textAlign: "center", marginTop: 20}}>
+                        <i style={{marginRight: 10, color: "goldenrod"}}
+                            className="fa-solid fa-exclamation-triangle"></i>
+                        Oops! Nothing to show</p>
+                </div>);
+                
+            }
+        })();
+
+    }, [ props.flights, filteredFlights, adaptedFlights ]);
+
+    const slidePriceFilter = async (e) => {
         let _value=e.target.value;
         setPriceSlider(_value);
         const _price = Math.ceil((_value/100)*flightsMaxPrice);
@@ -220,12 +306,13 @@ export default function ResultsListContainer(props){
         if(_value>99){
             filtersByPrice["_by_price_range"]=[];
         }else{
-            filtersByPrice["_by_price_range"]=filterByMaxPrice(props.flights, _price);
+            //filtersByPrice["_by_price_range"]=filterByMaxPrice(props.flights, _price);
+            filtersByPrice["_by_price_range"] = await filterByMaxPrice(adaptedFlights, _price);
         }
         filterFlights();
     }
 
-    const slideDurationFilter = (e) => {
+    const slideDurationFilter = async (e) => {
         let _value=e.target.value;
         setDurationSlider(_value);
         const _duration = (_value/100)*flightsMaxDuration;
@@ -234,16 +321,16 @@ export default function ResultsListContainer(props){
         if(_value>99){
             filtersByDuration["_by_duration_range"]=[];
         }else{
-            filtersByDuration["_by_duration_range"]=filterByMaxDuration(props.flights, _duration);
+            filtersByDuration["_by_duration_range"] = await filterByMaxDuration(props.flights, _duration, data_provider, providerDictionary, adaptedFlights);
         }
         filterFlights();
     }
 
-    const filterBags = (maxChecked, maxCarryOn) => {
+    const filterBags = async (maxChecked, maxCarryOn) => {
         if(!maxCarryOn && !maxChecked){
             filtersByBags["_by_bags_count"]=[];
         }else{
-            filtersByBags["_by_bags_count"] = filterByBags(props.flights, maxChecked, maxCarryOn); 
+            filtersByBags["_by_bags_count"] = await filterByBags(props.flights, maxChecked, maxCarryOn, data_provider, providerDictionary, adaptedFlights); 
         }  
         filterFlights();
     } 
@@ -386,53 +473,6 @@ export default function ResultsListContainer(props){
         window.localStorage.setItem("search_page_price_sort", 0);
     }
 
-    let FLIGHTS;
-    if(props.flights.length>0 && filteredFlights?.length<1){
-
-        // Sorting takes place here
-        let _flights = bubbleSort(props.flights, priceHighLowSort);
-
-        FLIGHTS = _flights.map((each, index) => 
-            <FlightOfferItem 
-                bookingEngine={bookingEngine}
-                selectFlightOffer={props.selectFlightOffer}
-                key={index} 
-                index={index}
-                flight={each}
-                hasNewMessageFromParent={hasNewMessageFromParent}
-                currentParentMessge={currentParentMessge}
-            />);
-    }else if(Array.isArray(filteredFlights) && filteredFlights.length>0){
-
-        FLIGHTS = filteredFlights.map((each, index) => 
-            <FlightOfferItem 
-                bookingEngine={bookingEngine}
-                selectFlightOffer={props.selectFlightOffer}
-                key={index} 
-                index={index}
-                flight={each}
-                hasNewMessageFromParent={hasNewMessageFromParent}
-                currentParentMessge={currentParentMessge}
-            />);
-    }else{
-        FLIGHTS = <div style={{padding: "10px", maxWidth: 250, margin: "auto", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center"}}>
-            <div style={{backgroundImage: `url('${missing_icon}')`, backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center", width: "100%", height: "100%", position: "absolute", left: 10, top: -5,  zIndex: 1, opacity: 0.1}}></div>
-            <p style={{textAlign: "center"}}>
-                <img src={plane_departure}  style={{width: "100%", height: "auto", opacity: 0.4}} alt="plane departure"/>
-            </p>
-            <p style={{fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.7)", fontSize: 14, textAlign: "center", marginTop: 20}}>
-                <i style={{marginRight: 10, color: "goldenrod"}}
-                    className="fa-solid fa-exclamation-triangle"></i>
-                Oops! Nothing to show</p>
-        </div>
-    }
-
-    // Getting Filter - Flight Stops - Creates Filter Toggles
-    let filterStops = duffelStopsAndPrices(props.flights);
-    // Getting Filter - Airlines - Creates Filter Toggles
-    let filterAirlines = duffelAirlinesAndPrices(props.flights);
-    // Getting Filter - Take-off Times - Creates Filter Toggles
-    let filterTimes = duffelTimesAndPrices(props.flights);
 
     return (
         <div style={{marginTop: 10, minHeight: "calc(100vh - 300px)", padding: 0}}>

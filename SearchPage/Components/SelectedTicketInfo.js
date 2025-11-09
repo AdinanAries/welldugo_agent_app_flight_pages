@@ -16,6 +16,8 @@ import { fetchAgentPriceMarkupInfo } from "../../../services/agentServices";
 const SelectedTicketInfo = (props) => {
 
     const {
+        rawData,
+        data_provider,
         bookingEngine,
         hasNewMessageFromParent,
         currentParentMessge,
@@ -104,7 +106,7 @@ const SelectedTicketInfo = (props) => {
     } = data;
 
     const book_item_onclick = () => {
-        props?.begin_checkout(data);
+        props?.begin_checkout(data, rawData, data_provider);
         setTimeout(()=>{
             global?.__unselectFlightOffer();
             global?.hide_selected_ticket_details_pane();

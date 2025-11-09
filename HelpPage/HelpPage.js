@@ -1,7 +1,12 @@
 import $ from "jquery";
 
 import NotLoggedIn from '../../components/NotLoggedIn';
-import { fetchAccountInfo } from "../../services/accountServices";
+import { 
+    fetchAccountInfo 
+} from "../../services/accountServices";
+import { 
+    fetchSupportTicketById 
+} from "../../services/agentServices";
 import support_page_support_icon from "../../icons/support_page_support_icon.svg";
 import CONSTANTS from "../../Constants/Constants";
 import CreateNewTicket from "./Components/CreateNewTicket";
@@ -12,6 +17,12 @@ import TicketSupportPage from "./Components/TicketSupportPage";
 import TicketList from "./Components/TicketList";
 
 function HelpPage(){
+
+    const params = new URLSearchParams(window.location.search);
+    let INITIAL_TICKET_ID = "";
+    if(params.has("tcktid")){
+        INITIAL_TICKET_ID = params.get("tcktid").trim();
+    }
 
     const [ isCreateNewTicket, setIsCreateNewTicket ] = useState(false);
     const [ isShowTicketsList, setIsShowTicketsList ] = useState(false);
@@ -37,6 +48,11 @@ function HelpPage(){
             setUser(_user);
             setIsLoggedIn(true);
             setIsLoading(false);
+            if(INITIAL_TICKET_ID){
+                let __ticket = await fetchSupportTicketById(INITIAL_TICKET_ID);
+                if(__ticket?._id)
+                    selectTicket(__ticket);
+            }
         }else{
             setIsLoading(false);
             setIsLoggedIn(false);
@@ -48,8 +64,19 @@ function HelpPage(){
         startCreateNewTicket(false);
     }, []);
 
-    const LogMeIn = () => {
+    const LogMeIn = async () => {
         localStorage.setItem(CONSTANTS.local_storage.logged_in_usr, true);
+        if(INITIAL_TICKET_ID){
+            let __ticket = await fetchSupportTicketById(INITIAL_TICKET_ID);
+            if(__ticket?._id)
+                selectTicket(__ticket);
+        }
+    }
+
+    const selectTicket = (_ticket) => {
+        setSelectedSupportTicket(_ticket);
+        setIsCreateNewTicket(false);
+        setIsShowTicketsList(false);
     }
 
     const goHomeFunction = () => {
@@ -150,11 +177,7 @@ function HelpPage(){
                                                 <CreateNewTicket
                                                     userDetails={user}
                                                     goBackFunction={()=>setIsCreateNewTicket(false)}
-                                                    callbackFunction={(_ticket)=>{
-                                                        setSelectedSupportTicket(_ticket);
-                                                        setIsCreateNewTicket(false);
-                                                        setIsShowTicketsList(false);
-                                                    }}
+                                                    callbackFunction={selectTicket}
                                                 />
                                             }
                                             {
@@ -163,11 +186,7 @@ function HelpPage(){
                                                     <TicketList 
                                                         pageFilters={pageFilters}
                                                         userDetails={user}
-                                                        setSelectedTicket={(_ticket_item)=>{
-                                                            setSelectedSupportTicket(_ticket_item);
-                                                            setIsCreateNewTicket(false);
-                                                            setIsShowTicketsList(false);
-                                                        }}
+                                                        setSelectedTicket={selectTicket}
                                                     />
                                                 </div>
                                             }

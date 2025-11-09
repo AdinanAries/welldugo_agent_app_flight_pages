@@ -1,26 +1,46 @@
 import plane_departure from "../../../airplane-departure.svg"
 import missing_icon from "../../../missing.svg"
 import SelectedTicketInfo from "./SelectedTicketInfo";
+import { FLIGHT_DATA_ADAPTER } from "../../../helpers/FlightDataAdapter";
 import { useState, useEffect } from "react";
 import { getFlightDetail } from "../../../services/flightsServices";
+import CONSTANTS from "../../../Constants/Constants";
 
 export default function SelectedTicketPane(props){
 
     const { 
+        data_provider,
+        selectedFlightData,
         selectedFlightId,
         bookingEngine,
         hasNewMessageFromParent,
         currentParentMessge
     } = props;
     const [ flightDetail, setFlightDetail ] = useState(null);
+    const [ rawData, setRawData ] = useState(null);
+    const [ providerDictionary, setProviderDictionary ] = useState({});
     const [isError, setIsError] = useState(false);
 
     useEffect(()=>{
         (async () => {
-            let data = await getFlightDetail(selectedFlightId);
+            const flight_id = (selectedFlightId || "");
+            const flight_object = (selectedFlightData || {});
+            let data = await getFlightDetail({ flight_id, flight_object });
             console.log("Full Flight Detail: ", data);
-            if(data.data) {
-                if(data) setFlightDetail(data);
+            if(
+                (data_provider.toUpperCase()===CONSTANTS.duffel && data.data) ||
+                (data_provider.toUpperCase()===CONSTANTS.amadeus && data.result)
+            ) {
+                if(data) {
+                    let dataDict = {};
+                    if(data_provider.toUpperCase()===CONSTANTS.amadeus){
+                        //dataDict = data?.result?.dictionaries;
+                        setProviderDictionary(dataDict);
+                    }
+                    setRawData(data);
+                    let detail = await FLIGHT_DATA_ADAPTER?.adapt(data, data_provider, dataDict, "full_flight");
+                    setFlightDetail(detail);
+                }
             }else{
                 setIsError(true);
                 setFlightDetail(null);
@@ -41,8 +61,10 @@ export default function SelectedTicketPane(props){
                 !isError ?
                     flightDetail ? 
                         <SelectedTicketInfo 
+                            data_provider={data_provider}
                             bookingEngine={bookingEngine}
                             key={0}
+                            rawData={rawData}
                             flight={flightDetail}
                             unselectFlightOffer={unselectFlightOffer} 
                             begin_checkout={props.begin_checkout} 

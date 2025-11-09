@@ -34,6 +34,7 @@ let INCLUDED_CHECKED_BAGS_EACH_PSNGR_QUANTITY = {};
 export default function CheckoutPage(props){
 
     const {
+        rawData,
         payload,
         cancel_checkout,
         LogMeIn,
@@ -44,6 +45,7 @@ export default function CheckoutPage(props){
         bookingEngine,
         hasNewMessageFromParent,
         currentParentMessge,
+        data_provider,
     } = props;
 
     let agent_id = "";
@@ -54,7 +56,7 @@ export default function CheckoutPage(props){
     const [ options, setOptions ] = useState();
     const API_HOST=getApiHost();
 
-    const [ PRICES, SET_PRICES ] = useState(FLIGHT_DATA_ADAPTER.adaptPriceProps(payload));
+    const [ PRICES, SET_PRICES ] = useState(FLIGHT_DATA_ADAPTER.adaptPriceProps(payload, CONSTANTS?.duffel)); // Use effect if data provider not yet set
     const [ overallTotal, setOverallTotal ] = useState(0);
     const [ activePage, setActivePage ] = useState(CONSTANTS.checkout_pages.info);
     const [ isBookingConfirmed, setIsBookingConfirmed] = useState(false);
@@ -68,7 +70,7 @@ export default function CheckoutPage(props){
     });
     const [ checkoutPayload, setcheckoutPayload ] = useState({
         meta: {},
-        data: FLIGHT_DATA_ADAPTER.prepareCheckout(payload)
+        data: FLIGHT_DATA_ADAPTER.prepareCheckout(payload, CONSTANTS?.duffel) // Default initial data will be a DUFFE-like obj
     });
     const [ stage, setStage ] = useState({percentage: 0, step: "", message: ""});
     const [ isLoading, setIsLoading ] = useState(false);
@@ -190,7 +192,7 @@ export default function CheckoutPage(props){
                         setIsBookingConfirmed(true);
                         setComfirmedBookingResourceID(_b_res?._id);
                         setCompletedOrderDetails(_payload);
-                        SET_PRICES(FLIGHT_DATA_ADAPTER.adaptPriceProps(_payload));
+                        SET_PRICES(FLIGHT_DATA_ADAPTER.adaptPriceProps(_payload, CONSTANTS?.duffel));
                     }
                 }
             }else{
@@ -298,7 +300,7 @@ export default function CheckoutPage(props){
         setOverallTotal(price);
     }
 
-    const AVAILABLE_SERVICES=FLIGHT_DATA_ADAPTER.return_available_services(payload);
+    const AVAILABLE_SERVICES=FLIGHT_DATA_ADAPTER.return_available_services(payload, CONSTANTS?.duffel);
 
     const resetCheckoutConfirmation = () => {
         setCheckoutConfirmation({
@@ -434,9 +436,9 @@ export default function CheckoutPage(props){
             ...checkoutPayload,
             data: {
                 ...checkoutPayload.data,
-                passengers
+                passengers,
             }
-        });
+        });  
     }
 
     const setResponsibleAdultForInfant = (e) => {
@@ -513,9 +515,32 @@ export default function CheckoutPage(props){
         checkoutPayload.meta.bookingIntent=booking_intent;
         //checkoutPayload.meta.totalFees=getTotalDefaultFees();
         checkoutPayload.meta.agent_id=agent_id;
-        let res=await createFlightOrder(checkoutPayload);
+        
+        // Adapting Required Data Parts info
+        let __checkoutPayload = checkoutPayload;
+        if(data_provider?.toUpperCase()===CONSTANTS?.duffel){
+            // Do Nothing
+        }else if(data_provider?.toUpperCase()===CONSTANTS?.amadeus){
+            let { passengers } = __checkoutPayload.data;
+            let travelers = [];
+            for(let psg=0; psg<passengers?.length; psg++){
+                let _traveler = FLIGHT_DATA_ADAPTER?.adaptPassengerObj(passengers[psg], data_provider);
+                travelers.push(_traveler);
+            }
+            // To do -----------------------------------------------------------------------------------------------------------------------------------------
+            let __checkoutPayloadData = FLIGHT_DATA_ADAPTER.prepareCheckout(rawData, data_provider);
+            __checkoutPayload = {
+                ...__checkoutPayload,
+                data: {
+                    ...__checkoutPayloadData,
+                    travelers,
+                }
+            }
+        }
+
+        let res=await createFlightOrder(__checkoutPayload);
         if(res?.data?.id){
-            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject(res.data);
+            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject(res.data, data_provider);
             log.profits = {
                 price_markup: PriceMarkupValue,
                 can_show: canShowPrice,
@@ -873,6 +898,7 @@ export default function CheckoutPage(props){
                         {
                             (activePage===CONSTANTS.checkout_pages.pnr) ?
                                 <PassengerNameRecord
+                                    data_provider={data_provider}
                                     bookingEngine={bookingEngine}
                                     showInfoPage={showInfoPage}
                                     setResponsibleAdultForInfant={setResponsibleAdultForInfant}

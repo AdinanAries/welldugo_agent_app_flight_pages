@@ -12,7 +12,11 @@ import { return_country_alpha_option_components } from "../../../helpers/world_c
 
 const PassengerForm = (props) => {
     
-    const { resetCheckoutConfirmation, bookingEngine } = props;
+    const { 
+        resetCheckoutConfirmation, 
+        bookingEngine,
+        data_provider,
+    } = props;
 
     const [passenger, setPassenger] = useState(props.passenger);
     const [ age, setAge ]=useState(calculate_age(passenger.born_on));
@@ -105,6 +109,41 @@ const PassengerForm = (props) => {
             { ...passenger.identity_documents[0], issuing_country_code: e.target.value }
         ]});
     }
+    const setTravelValidityCountry = (e) => {
+        resetCheckoutConfirmation();
+        resetFormValidation();
+        setPassenger({...passenger, identity_documents: [
+            { ...passenger.identity_documents[0], validity_country: e.target.value }
+        ]});
+    }
+    const setNationality = (e) => {
+        resetCheckoutConfirmation();
+        resetFormValidation();
+        setPassenger({...passenger, identity_documents: [
+            { ...passenger.identity_documents[0], nationality: e.target.value }
+        ]});
+    }
+    const setIssuanceDate = (e) => {
+        resetCheckoutConfirmation();
+        resetFormValidation();
+        setPassenger({...passenger, identity_documents: [
+            { ...passenger.identity_documents[0], issuance_date: e.target.value }
+        ]});
+    }
+    const setBirthCity = (e) => {
+        resetCheckoutConfirmation();
+        resetFormValidation();
+        setPassenger({...passenger, identity_documents: [
+            { ...passenger.identity_documents[0], birth_city: e.target.value }
+        ]});
+    }
+    const setIssuanceCity = (e) => {
+        resetCheckoutConfirmation();
+        resetFormValidation();
+        setPassenger({...passenger, identity_documents: [
+            { ...passenger.identity_documents[0], issuance_city: e.target.value }
+        ]});
+    }
     const setTravelDocType = (e) => {
         resetCheckoutConfirmation();
         resetFormValidation();
@@ -112,6 +151,21 @@ const PassengerForm = (props) => {
             { ...passenger.identity_documents[0], type: e.target.value }
         ]});
     }
+
+    /*
+        data_provider
+
+        -documentType: "PASSPORT",
+        -birthPlace: "Madrid",
+        -issuanceLocation: "Madrid",
+        issuanceDate: "2015-04-14",
+        -number: unique_identifier,
+        -expiryDate: expires_on,
+        -issuanceCountry: issuing_country_code,
+        validityCountry: "ES",
+        nationality: "ES",
+        holder: true,
+    */
 
     const setPassengerAge = (e) => {
         resetCheckoutConfirmation();
@@ -382,6 +436,76 @@ const PassengerForm = (props) => {
                         </select>
                     </div>
                 </div>
+                {
+                    (data_provider?.toUpperCase()===CONSTANTS?.amadeus) &&
+                    <>
+                        <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
+                            <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
+                                <i className="fa-solid fa-id-card" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                Validity Country</p>
+                            <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
+                                <select 
+                                    onChange={setTravelValidityCountry} 
+                                    value={passenger.identity_documents[0].validity_country}
+                                    style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", width: "calc(100% - 20px)", padding: 10, background: "none", border: "none"}}>
+                                    <option value="">Select here...</option>
+                                    {return_country_alpha_option_components()}
+                                </select>
+                            </div>
+                        </div>
+                        <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
+                            <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
+                                <i className="fa-solid fa-id-card" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                Nationality</p>
+                            <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
+                                <select 
+                                    onChange={setNationality} 
+                                    value={passenger.identity_documents[0].nationality}
+                                    style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", width: "calc(100% - 20px)", padding: 10, background: "none", border: "none"}}>
+                                    <option value="">Select here...</option>
+                                    {return_country_alpha_option_components()}
+                                </select>
+                            </div>
+                        </div>
+                        <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
+                            <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
+                                <i className="fa-solid fa-passport" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                Birth City</p>
+                            <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
+                                <input 
+                                    onInput={setBirthCity}
+                                    value={passenger.identity_documents[0].birth_city}
+                                    type="text" placeholder="type here..."  
+                                    style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", width: "calc(100% - 20px)", padding: 10, background: "none", border: "none"}}/>
+                            </div>
+                        </div>
+                        <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
+                            <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
+                                <i className="fa-solid fa-passport" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                Issuance City</p>
+                            <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
+                                <input 
+                                    onInput={setIssuanceCity}
+                                    value={passenger.identity_documents[0].issuance_city}
+                                    type="text" placeholder="type here..."  
+                                    style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", width: "calc(100% - 20px)", padding: 10, background: "none", border: "none"}}/>
+                            </div>
+                        </div>
+                        <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
+                            <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
+                                <i className="fa-solid fa-passport" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                Issuance Date</p>
+                            <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
+                                <input 
+                                    onInput={setIssuanceDate}
+                                    value={passenger.identity_documents[0].issuance_date}
+                                    type="text" placeholder="type here..."  
+                                    style={{fontSize: 14, fontFamily: "'Prompt', Sans-serif", width: "calc(100% - 20px)", padding: 10, background: "none", border: "none"}}/>
+                            </div>
+                        </div>
+                        holder: true,
+                    </>
+                }
             </div>
             {
                 formValidation.isError && <FormErrorCard 
