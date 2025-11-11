@@ -70,7 +70,7 @@ export default function CheckoutPage(props){
     });
     const [ checkoutPayload, setcheckoutPayload ] = useState({
         meta: {},
-        data: FLIGHT_DATA_ADAPTER.prepareCheckout(payload, CONSTANTS?.duffel) // Default initial data will be a DUFFE-like obj
+        data:  {}
     });
     const [ stage, setStage ] = useState({percentage: 0, step: "", message: ""});
     const [ isLoading, setIsLoading ] = useState(false);
@@ -90,6 +90,18 @@ export default function CheckoutPage(props){
         with_price_bound_profit: false,
         show: false,
     });
+
+    const initAdaptCheckoutData = async () => {
+        // Default initial data will be a DUFFEL obj
+        const INIt_ADAPTED = await FLIGHT_DATA_ADAPTER.prepareCheckout(payload, CONSTANTS?.duffel);
+        setcheckoutPayload({
+            ...checkoutPayload,
+            data: {
+                ...checkoutPayload.data,
+                ...INIt_ADAPTED
+            }
+        });
+    }
 
     useEffect(()=>{
         (async()=>{
@@ -163,6 +175,7 @@ export default function CheckoutPage(props){
         setBookingIntent(null);
         setIncludedCB(INCLUDED_CHECKED_BAGS_EACH_PSNGR_QUANTITY);
         addApplicableFees();
+        initAdaptCheckoutData();
     }, []);
 
     // code: const TOTAL_PRICE=checkoutPayload.data.payments[0].amount;
@@ -524,11 +537,11 @@ export default function CheckoutPage(props){
             let { passengers } = __checkoutPayload.data;
             let travelers = [];
             for(let psg=0; psg<passengers?.length; psg++){
-                let _traveler = FLIGHT_DATA_ADAPTER?.adaptPassengerObj(passengers[psg], data_provider);
+                let _traveler = await FLIGHT_DATA_ADAPTER?.adaptPassengerObj(passengers[psg], data_provider);
                 travelers.push(_traveler);
             }
-            // To do -----------------------------------------------------------------------------------------------------------------------------------------
-            let __checkoutPayloadData = FLIGHT_DATA_ADAPTER.prepareCheckout(rawData, data_provider);
+            
+            let __checkoutPayloadData = await FLIGHT_DATA_ADAPTER.prepareCheckout(rawData, data_provider);
             __checkoutPayload = {
                 ...__checkoutPayload,
                 data: {
@@ -538,9 +551,14 @@ export default function CheckoutPage(props){
             }
         }
 
+        console.log("----------Current Checkout:", __checkoutPayload);
+
+        return
+
         let res=await createFlightOrder(__checkoutPayload);
         if(res?.data?.id){
-            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject(res.data, data_provider);
+            let dictionary = res?.dictionaries || {};
+            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject(res.data, data_provider, dictionary);
             log.profits = {
                 price_markup: PriceMarkupValue,
                 can_show: canShowPrice,
@@ -550,24 +568,25 @@ export default function CheckoutPage(props){
             await startProcessingBookingLog();
             const logged = await logFlightBooking(log);
             setIsBookingConfirmed(true);
-            setCompletedOrderDetails(res.data);
+            const adapted_order_details = FLIGHT_DATA_ADAPTER.prepareFlightCompletedOrderObject(res.data, data_provider, dictionary);
+            setCompletedOrderDetails(adapted_order_details);
             setComfirmedBookingResourceID(logged._id);
             // 3. Logging booking as user activity
             Logger.log_activity({
                 title: "Flight Booking Confirmed",
-                body: getBookingConfirmedLogMessage(res.data),
+                body: getBookingConfirmedLogMessage(adapted_order_details),
                 resource_id: logged._id,
                 resource_type: CONSTANTS.resource_types.booking_history,
             });
 
             //Seding email to customer
             const MSG = {
-                to: res.data?.passengers[0]?.email,
+                to: adapted_order_details?.passengers[0]?.email,
                 subject: "Welldugo.com - Flight Booking Confirmation",
                 text: `
-                Dear ${res.data?.passengers[0]?.given_name} ${res.data?.passengers[0]?.family_name},\n\n
+                Dear ${adapted_order_details?.passengers[0]?.given_name} ${adapted_order_details?.passengers[0]?.family_name},\n\n
                 \tPlease view your booking confirmation details below:`,
-                html: FlightConfirmationEmailMarkup(res.data),
+                html: FlightConfirmationEmailMarkup(adapted_order_details),
             }
             const email_res = await fetch((API_HOST+'/api/email/send/'), {
                 method: "POST",
@@ -587,7 +606,7 @@ export default function CheckoutPage(props){
                     user_id: __obj?.user_id,
                     itinerary_id: __obj?.itinerary_id, 
                     booking_id: logged._id,
-                    confirmation_number: res.data?.booking_reference,
+                    confirmation_number: adapted_order_details?.booking_reference,
                     app_url: __obj?.app_url,
                     product_type: __obj?.product_type,
                     prod_index: __obj?.prod_index,
@@ -595,10 +614,10 @@ export default function CheckoutPage(props){
                     item_id: __obj?.item_id,
                     item_details: __obj?.item_details,
                     link_type: "booking_id", 
-                    url_link: `${__obj?.app_url}/search?product=0&booking_id=${logged._id}&cust_eml=${res.data?.passengers[0]?.email}&ag=${__obj?.user_id}`, // to do (Also, wdg_client_domain=>placeholder to be replaced with actual domain url)
+                    url_link: `${__obj?.app_url}/search?product=0&booking_id=${logged._id}&cust_eml=${adapted_order_details?.passengers[0]?.email}&ag=${__obj?.user_id}`, // to do (Also, wdg_client_domain=>placeholder to be replaced with actual domain url)
                                                //search?product=0&booking_id=676b5fb6cffcb2b26efec8b2&cust_eml=adinanaries@gmail.com&ag=67fdc8bc45641576b851aafd
                     is_booked: true, 
-                    customer_email: res.data?.passengers[0]?.email,
+                    customer_email: adapted_order_details?.passengers[0]?.email,
                     is_verified: true,
                 }
                 const booked_itin_item_res = await saveBookedItineraryItem(__obj_to_save, agentToKen);
@@ -616,7 +635,7 @@ export default function CheckoutPage(props){
                                 ...__obj_to_save,
                                 link: __obj_to_save?.url_link,
                                 booked_itin_item_id: booked_itin_item_res?._id,
-                                booking_details: res.data,
+                                booking_details: adapted_order_details,
                                 log_details: logged,
                             }
                         }
@@ -896,7 +915,7 @@ export default function CheckoutPage(props){
                                 /> : ""
                         }
                         {
-                            (activePage===CONSTANTS.checkout_pages.pnr) ?
+                            (activePage===CONSTANTS.checkout_pages.pnr && checkoutPayload?.data?.passengers) ?
                                 <PassengerNameRecord
                                     data_provider={data_provider}
                                     bookingEngine={bookingEngine}

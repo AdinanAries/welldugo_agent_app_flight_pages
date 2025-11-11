@@ -96,12 +96,15 @@ const SearchPageMain = (props) => {
 
     useEffect(()=>{
         if(flights){
-            if(flights?.length>0 && (canShowPrice?.show && (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value)))
+            if(flights?.length>0 
+                && (canShowPrice?.show && 
+                    (!canShowPrice?.with_price_bound_profit || PriceMarkupValue?.value))
+            )
                 runBotPrompt(flights);
             //else
                 //runBotPrompt();
         }
-    }, [adaptedFlights, PriceMarkupValue, canShowPrice])
+    }, [adaptedFlights, /*PriceMarkupValue,*/ canShowPrice])
 
     const setFlightsResults = async () => {
 

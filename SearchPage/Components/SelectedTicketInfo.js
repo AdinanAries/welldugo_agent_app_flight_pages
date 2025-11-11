@@ -110,7 +110,7 @@ const SelectedTicketInfo = (props) => {
         setTimeout(()=>{
             global?.__unselectFlightOffer();
             global?.hide_selected_ticket_details_pane();
-        },300);
+        }, 300);
     }
     window.__Selected_Ticket_Book_Item_Onclick = book_item_onclick;
 

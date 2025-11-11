@@ -455,7 +455,7 @@ const PassengerForm = (props) => {
                         </div>
                         <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
                             <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
-                                <i className="fa-solid fa-id-card" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                <i className="fa-solid fa-globe" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
                                 Nationality</p>
                             <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
                                 <select 
@@ -469,7 +469,7 @@ const PassengerForm = (props) => {
                         </div>
                         <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
                             <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
-                                <i className="fa-solid fa-passport" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                <i className="fa-solid fa-city" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
                                 Birth City</p>
                             <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
                                 <input 
@@ -481,7 +481,7 @@ const PassengerForm = (props) => {
                         </div>
                         <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
                             <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
-                                <i className="fa-solid fa-passport" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                <i className="fa-solid fa-city" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
                                 Issuance City</p>
                             <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
                                 <input 
@@ -493,7 +493,7 @@ const PassengerForm = (props) => {
                         </div>
                         <div style={{marginBottom: 5, backgroundColor: "rgba(0,0,0,0.07)", padding: 10, borderRadius: 8}}>
                             <p style={{color: "rgba(0,0,0,0.7)", fontFamily: "'Prompt', Sans-serif", fontSize: 14}}>
-                                <i className="fa-solid fa-passport" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
+                                <i className="fa-solid fa-calendar" style={{marginRight: 10, color: "rgb(43, 52, 61)"}}></i>
                                 Issuance Date</p>
                             <div style={{border: "none", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: 10}}>
                                 <input 

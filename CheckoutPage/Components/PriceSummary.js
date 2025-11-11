@@ -150,7 +150,7 @@ const PriceSummary = (props) => {
             </div>
         );
     });
-
+    
     return (
         <div style={{border: "1px solid rgba(0,0,0,0.1)", borderRadius: 9, padding: 10, margin: 10}}>
             <p style={{fontSize: 16, letterSpacing: 1, fontWeight: "bolder", fontFamily: "'Prompt', Sans-serif", color: "rgba(0,0,0,0.8)"}}>
@@ -282,8 +282,14 @@ const PriceSummary = (props) => {
                                     <>
                                         {
                                             
-                                            PriceMarkupValue?.value ?
-                                            (add_commas_to_number((parseFloat((markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price)?.toFixed(2))+extras_total)))
+                                            PriceMarkupValue?.value ? (
+                                                add_commas_to_number((
+                                                    parseFloat((
+                                                        markup(overallTotal, PriceMarkupValue?.value, PriceMarkupValue?.type)?.new_price
+                                                        +extras_total
+                                                    ))?.toFixed(2)
+                                                ))
+                                            )
                                             : "N/A"
                                         }
                                     </>
