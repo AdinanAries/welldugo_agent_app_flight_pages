@@ -558,7 +558,7 @@ export default function CheckoutPage(props){
         let res=await createFlightOrder(__checkoutPayload);
         if(res?.data?.id){
             let dictionary = res?.dictionaries || {};
-            let log=FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject(res.data, data_provider, dictionary);
+            let log= await FLIGHT_DATA_ADAPTER.prepareFlightBookingLogObject(res.data, data_provider, dictionary);
             log.profits = {
                 price_markup: PriceMarkupValue,
                 can_show: canShowPrice,
@@ -568,7 +568,7 @@ export default function CheckoutPage(props){
             await startProcessingBookingLog();
             const logged = await logFlightBooking(log);
             setIsBookingConfirmed(true);
-            const adapted_order_details = FLIGHT_DATA_ADAPTER.prepareFlightCompletedOrderObject(res.data, data_provider, dictionary);
+            const adapted_order_details = await FLIGHT_DATA_ADAPTER.prepareFlightCompletedOrderObject(res.data, data_provider, dictionary);
             setCompletedOrderDetails(adapted_order_details);
             setComfirmedBookingResourceID(logged._id);
             // 3. Logging booking as user activity

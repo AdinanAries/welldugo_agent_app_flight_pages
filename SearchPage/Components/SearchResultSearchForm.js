@@ -62,10 +62,16 @@ function SearchForm( props ){
         _is_bl_search = true;
     }
 
+    let show_search_form = false;
+    const params = new URLSearchParams(window.location.search);
+    if(params.has("show_search_form")){
+        show_search_form = JSON.parse(params.get('show_search_form').trim());
+    }
+
     return(
         <div id="search_results_page_search_form" className="main-search-form" style={{position: "relative"}}>
             {
-                _is_bl_search && <div style={{position: "absolute", left: 0, right: 0, zIndex: 100, height: "100%", width: "100%", backgroundColor: "rgba(255,255,255,0.5)"}}>
+                (_is_bl_search && !show_search_form) && <div style={{position: "absolute", left: 0, right: 0, zIndex: 100, height: "100%", width: "100%", backgroundColor: "rgba(255,255,255,0.5)"}}>
                     <div style={{backgroundColor: "crimson", padding: 10, position: "absolute", width: "100%", bottom: 0, left: 0}}>
                         <p style={{color: "white", fontSize: 13}}>
                             <i style={{marginRight: 10, color: "yellow"}}

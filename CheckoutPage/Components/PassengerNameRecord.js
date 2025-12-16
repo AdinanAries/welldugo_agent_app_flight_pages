@@ -138,7 +138,7 @@ const PassengerNameRecord = (props) => {
                                                         style={{fontSize: 13, color: "white", textAlign: "center", textDecoration: "underline", padding: 10, backgroundColor: "darkslateblue"}}>
                                                         <i style={{color: "rgba(255,255,255,0.5)", marginRight: 10, fontSize: 13}}
                                                             className="fa-solid fa-plus"></i>
-                                                        Add Customer
+                                                        Add Person
                                                     </p>
                                                 </div>
                                             </div>
