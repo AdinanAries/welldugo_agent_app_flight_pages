@@ -17,6 +17,9 @@ import { FLIGHT_DATA_ADAPTER } from "../../../helpers/FlightDataAdapter";
 import LOGO_PLACEHOLDER from "../../../LOGO_PLACEHOLDER.jpg";
 import { saveBookedItineraryItem } from "../../../services/agentServices";
 
+// Type 2
+import FlightSearchResults from "../Type2/Pages/FlightSearchResults";
+
 const SearchPageMain = (props) => {
 
     const {
@@ -436,6 +439,7 @@ const SearchPageMain = (props) => {
                     {
                         searchObjectIncomplete ?
                         <>
+                            {/*<FlightSearchResults />*/}
                             {
                                 !bookingEngine?.hideGreetingsCard ?
                                 <div style={{paddingBottom: 20}}>

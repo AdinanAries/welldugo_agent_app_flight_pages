@@ -4,6 +4,7 @@ import { has_data_provider } from "../../../helpers/general";
 
 //Offer item cards
 import OfferItem from "./FlightOfferCards.js/OfferItem";
+import Type2OfferItem from "./FlightOfferCards.js/Type2OfferItem";
 
 const FlightOfferItem = (props) => {
     const {
@@ -14,19 +15,37 @@ const FlightOfferItem = (props) => {
         rawData,
     } = props;
 
-
+    const resultsCardType = 2;
     
     if(has_data_provider(data_provider)) {
-        return <OfferItem
-            bookingEngine={bookingEngine}
-            selectFlightOffer={props.selectFlightOffer}
-            flight={props.flight} 
-            index={props.index}
-            hasNewMessageFromParent={hasNewMessageFromParent}
-            currentParentMessge={currentParentMessge}
-            rawData={rawData}
-            data_provider={data_provider}
-        />
+        return <>
+            {
+                (resultsCardType === 1) &&
+                <OfferItem
+                    bookingEngine={bookingEngine}
+                    selectFlightOffer={props.selectFlightOffer}
+                    flight={props.flight} 
+                    index={props.index}
+                    hasNewMessageFromParent={hasNewMessageFromParent}
+                    currentParentMessge={currentParentMessge}
+                    rawData={rawData}
+                    data_provider={data_provider}
+                />
+            }
+            {
+                (resultsCardType === 2) &&
+                <Type2OfferItem 
+                    bookingEngine={bookingEngine}
+                    selectFlightOffer={props.selectFlightOffer}
+                    flight={props.flight} 
+                    index={props.index}
+                    hasNewMessageFromParent={hasNewMessageFromParent}
+                    currentParentMessge={currentParentMessge}
+                    rawData={rawData}
+                    data_provider={data_provider}
+                />
+            }
+        </>
     } else {
         return <div style={{marginTop: 10, padding: 20, backgroundColor: "crimson", border: "2px dashed red", fontSize: 13}}>
             <p style={{fontSize: 13, color: "white"}}>

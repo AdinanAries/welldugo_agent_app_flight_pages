@@ -32,6 +32,7 @@ import {
 } from "../../../helpers/FlightsFilterHelpers";
 import { useEffect, useState } from "react";
 import { bubbleSort } from "../../../helpers/BubbleSort";
+import TopBanner from "./TopBanner";
 
 let filtersByStops={};
 let filtersByAirlines={};
@@ -474,6 +475,8 @@ export default function ResultsListContainer(props){
     }
 
 
+    const showTopBanner = true;
+
     return (
         <div style={{marginTop: 10, minHeight: "calc(100vh - 300px)", padding: 0}}>
             
@@ -485,6 +488,13 @@ export default function ResultsListContainer(props){
                     : <MobileItinTopInfoLoader />
                 }
             </div>
+            {
+                showTopBanner &&
+                <TopBanner 
+                    flights={adaptedFlights}
+                    filteredFlights={filteredFlights}
+                />
+            }
             <div className="search_list_main_flex_container">
                 <div id="search_list_main__settings_section" className="search_list_main__settings_section">
                     { 
