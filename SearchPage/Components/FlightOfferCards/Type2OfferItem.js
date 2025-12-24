@@ -41,7 +41,8 @@ export default function Type2OfferItem(props) {
       backgroundColor: 'white',
       overflow: 'hidden',
       transition: 'all 0.5s',
-      cursor: 'pointer'
+      cursor: 'pointer',
+      marginBottom: 5,
     }}
     onMouseEnter={(e) => {
       e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
@@ -68,7 +69,7 @@ export default function Type2OfferItem(props) {
             </div>
           </div>
           
-          {flight.fare_brand_name && (
+          {slice.fare_brand_name && (
             <div style={{ 
               fontSize: '12px', 
               backgroundColor: '#dbeafe', 

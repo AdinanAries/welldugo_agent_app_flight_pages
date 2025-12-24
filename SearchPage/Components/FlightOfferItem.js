@@ -3,8 +3,11 @@ import ENVIRONMENT from "../../../Constants/Environment";
 import { has_data_provider } from "../../../helpers/general";
 
 //Offer item cards
-import OfferItem from "./FlightOfferCards.js/OfferItem";
-import Type2OfferItem from "./FlightOfferCards.js/Type2OfferItem";
+import OfferItem from "./FlightOfferCards/OfferItem";
+import Type2OfferItem from "./FlightOfferCards/Type2OfferItem";
+import Type3OfferItem from "./FlightOfferCards/Type3OfferItem";
+import Type4OfferItem from "./FlightOfferCards/Type4OfferItem";
+import Type5OfferItem from "./FlightOfferCards/Type5OfferItem";
 
 const FlightOfferItem = (props) => {
     const {
@@ -15,7 +18,7 @@ const FlightOfferItem = (props) => {
         rawData,
     } = props;
 
-    const resultsCardType = 2;
+    const resultsCardType = 1;
     
     if(has_data_provider(data_provider)) {
         return <>
@@ -35,6 +38,45 @@ const FlightOfferItem = (props) => {
             {
                 (resultsCardType === 2) &&
                 <Type2OfferItem 
+                    bookingEngine={bookingEngine}
+                    selectFlightOffer={props.selectFlightOffer}
+                    flight={props.flight} 
+                    index={props.index}
+                    hasNewMessageFromParent={hasNewMessageFromParent}
+                    currentParentMessge={currentParentMessge}
+                    rawData={rawData}
+                    data_provider={data_provider}
+                />
+            }
+            {
+                (resultsCardType === 3) &&
+                <Type3OfferItem 
+                    bookingEngine={bookingEngine}
+                    selectFlightOffer={props.selectFlightOffer}
+                    flight={props.flight} 
+                    index={props.index}
+                    hasNewMessageFromParent={hasNewMessageFromParent}
+                    currentParentMessge={currentParentMessge}
+                    rawData={rawData}
+                    data_provider={data_provider}
+                />
+            }
+            {
+                (resultsCardType === 4) &&
+                <Type4OfferItem 
+                    bookingEngine={bookingEngine}
+                    selectFlightOffer={props.selectFlightOffer}
+                    flight={props.flight} 
+                    index={props.index}
+                    hasNewMessageFromParent={hasNewMessageFromParent}
+                    currentParentMessge={currentParentMessge}
+                    rawData={rawData}
+                    data_provider={data_provider}
+                />
+            }
+            {
+                (resultsCardType === 5) &&
+                <Type5OfferItem 
                     bookingEngine={bookingEngine}
                     selectFlightOffer={props.selectFlightOffer}
                     flight={props.flight} 
