@@ -4,7 +4,9 @@ const Type4TopBanner = (props) => {
 
     const {
         flights,
-        filteredFlights
+        filteredFlights,
+        showSearchPageForm,
+        setShowSearchPageForm,
     } = props;
 
     const styles = {
@@ -43,7 +45,7 @@ const Type4TopBanner = (props) => {
         });
     };
 
-    return <div style={styles.searchContainer}>
+    return <div style={{...styles.searchContainer, display: showSearchPageForm && "none", marginTop: !showSearchPageForm && -40}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -51,8 +53,8 @@ const Type4TopBanner = (props) => {
                 <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">New York to London</h1>
                 <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase rounded-full border border-indigo-100">Round trip</span>
                 </div>
-                <button className="text-sm font-bold text-indigo-600 bg-white border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-                Modify Search
+                <button onClick={()=>setShowSearchPageForm(!showSearchPageForm)} className="text-sm font-bold text-indigo-600 bg-white border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                    Modify Search
                 </button>
             </div>
 
@@ -75,7 +77,7 @@ const Type4TopBanner = (props) => {
                 <div className="p-2 bg-slate-50 rounded-lg text-slate-400"><Calendar style={{ width: "16px", height: "16px" }} /></div>
                 <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dates</p>
-                    <p className="text-sm font-bold text-slate-900">{formatDate(flights[0].slices[0].segments[0].departing_at)}</p>
+                    <p className="text-sm font-bold text-slate-900">{formatDate(flights?.[0]?.slices?.[0]?.segments?.[0]?.departing_at)}</p>
                 </div>
                 </div>
                 <div style={styles.searchItem} className="flex items-center gap-3">

@@ -29,6 +29,8 @@ const SearchPageMain = (props) => {
         bookingEngine,
         hasNewMessageFromParent,
         currentParentMessge,
+        showSearchPageForm,
+        setShowSearchPageForm,
     } = props;
     
     const [ PriceMarkupValue, setPriceMarkupValue ] = useState({
@@ -398,10 +400,13 @@ const SearchPageMain = (props) => {
         <main style={{background: "white"}}>
             <div className="wrapper search-page-wrapper">
                 <div style={{paddingTop: 90}}>
-                    <SearchResultSearchForm 
-                        bookingEngine={bookingEngine}
-                        agentDetails={agentDetails}
-                        submitFromSearchPage={submitFromSearchPage} />
+                    {
+                        <SearchResultSearchForm 
+                            showSearchPageForm={showSearchPageForm}
+                            bookingEngine={bookingEngine}
+                            agentDetails={agentDetails}
+                            submitFromSearchPage={submitFromSearchPage} />
+                    }
                     {
                         (
                             (hasNewMessageFromParent &&
@@ -542,6 +547,8 @@ const SearchPageMain = (props) => {
                                     agentDetails={agentDetails}
                                     hasNewMessageFromParent={hasNewMessageFromParent}
                                     currentParentMessge={currentParentMessge}
+                                    showSearchPageForm={showSearchPageForm}
+                                    setShowSearchPageForm={setShowSearchPageForm}
                                 /> : <div style={{padding: "10px 0"}}>
                                     <div style={{padding: 20, backgroundColor: "crimson", border: "2px dashed red", fontSize: 13}}>
                                         <p style={{fontSize: 13, color: "white"}}>

@@ -14,6 +14,8 @@ function HomePage(props){
     change_product_type,
     hasNewMessageFromParent,
     currentParentMessge,
+    showSearchPageForm,
+    setShowSearchPageForm,
 } = props
     return(
         <div id="home_page">
@@ -36,6 +38,8 @@ function HomePage(props){
                     change_product_type={change_product_type}
                     hasNewMessageFromParent={hasNewMessageFromParent}
                     currentParentMessge={currentParentMessge}
+                    showSearchPageForm={showSearchPageForm}
+                    setShowSearchPageForm={setShowSearchPageForm}
                 /> 
             }
         </div>

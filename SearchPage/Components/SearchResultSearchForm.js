@@ -9,6 +9,7 @@ import { show_search_page } from "../../../helpers/PageRoutingFuncs";
 function SearchForm( props ){
 
     const {
+        showSearchPageForm,
         bookingEngine,
         agentDetails,
     } = props;
@@ -33,7 +34,7 @@ function SearchForm( props ){
         travelers.infants=flight_search_data.itinerary.travelers.infants;
         sp_set_default_travelers(travelers);
         
-    },[]);
+    }, []);
 
     const isAllSearchInputsSet = () => {
         if(document.getElementById("sp_search_forms_from_where_input_fld").value===""){
@@ -69,7 +70,7 @@ function SearchForm( props ){
     }
 
     return(
-        <div id="search_results_page_search_form" className="main-search-form" style={{position: "relative"}}>
+        <div id="search_results_page_search_form" className="main-search-form" style={{display: showSearchPageForm ? "block" : "none", position: "relative"}}>
             {
                 (_is_bl_search && !show_search_form) && <div style={{position: "absolute", left: 0, right: 0, zIndex: 100, height: "100%", width: "100%", backgroundColor: "rgba(255,255,255,0.5)"}}>
                     <div style={{backgroundColor: "crimson", padding: 10, position: "absolute", width: "100%", bottom: 0, left: 0}}>

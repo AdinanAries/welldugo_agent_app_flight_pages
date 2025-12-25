@@ -17,6 +17,8 @@ function SearchPage(props){
         bookingEngine,
         hasNewMessageFromParent,
         currentParentMessge,
+        showSearchPageForm,
+        setShowSearchPageForm,
     } = props;
 
     return (
@@ -83,6 +85,8 @@ function SearchPage(props){
                             change_product_type={change_product_type}
                             hasNewMessageFromParent={hasNewMessageFromParent}
                             currentParentMessge={currentParentMessge}
+                            showSearchPageForm={showSearchPageForm}
+                            setShowSearchPageForm={setShowSearchPageForm}
                         />
                     }
                     {

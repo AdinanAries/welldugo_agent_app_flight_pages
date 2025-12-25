@@ -60,7 +60,9 @@ export default function ResultsListContainer(props){
         PriceMarkupValue,
         setPriceMarkupValue,
         canShowPrice,
-        setCanShowPrice
+        setCanShowPrice,
+        showSearchPageForm,
+        setShowSearchPageForm,
     } = props;
 
     useEffect(()=>{
@@ -493,6 +495,8 @@ export default function ResultsListContainer(props){
                 <TopBanner 
                     flights={adaptedFlights}
                     filteredFlights={filteredFlights}
+                    showSearchPageForm={showSearchPageForm}
+                    setShowSearchPageForm={setShowSearchPageForm}
                 />
             }
             <div className="search_list_main_flex_container">
