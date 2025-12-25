@@ -218,7 +218,7 @@ const Type4OfferItem = (props) => {
                            <div className="w-8 h-8 bg-slate-50 rounded-lg p-1.5"><img src={segment.marketing_carrier.logo_symbol_url} alt="" /></div>
                            <div>
                              <p className="text-xs font-bold text-slate-800">{segment.marketing_carrier.name}</p>
-                             <p className="text-[10px] font-medium text-slate-400">{segment.aircraft.name} • {segment.marketing_carrier_flight_number}</p>
+                             <p className="text-[10px] font-medium text-slate-400">{segment.aircraft?.name} • {segment.marketing_carrier_flight_number}</p>
                            </div>
                         </div>
                         <div className="text-right">

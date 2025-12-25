@@ -18,7 +18,7 @@ const FlightOfferItem = (props) => {
         rawData,
     } = props;
 
-    const resultsCardType = 1;
+    const resultsCardType = 4;
     
     if(has_data_provider(data_provider)) {
         return <>

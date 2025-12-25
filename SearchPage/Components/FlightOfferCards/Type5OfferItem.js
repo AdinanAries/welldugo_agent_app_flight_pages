@@ -47,8 +47,8 @@ export default function Type5OfferItem(props) {
             />
           </div>
           <div>
-            <div className="text-gray-900">
-              {flight.owner.name} - {flight.owner.iata_code}</div>
+            <div className="text-sm text-gray-900">
+              {flight.owner.name} ({flight.owner.iata_code})</div>
             {/* Emissions */}
             <div className="flex items-center gap-1 mt-3 text-sm text-gray-500">
                 <Leaf style={{ width: "16px", height: "16px" }} className="text-green-600" />
